@@ -30,16 +30,32 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain) throws ServletException, IOException {
         final String authHeader = request.getHeader("Authorization");
-        final String jwt;
-        final String username;
+        String jwt = null;
+        String username = null;
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        // Check Authorization header first
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            jwt = authHeader.substring(7);
+            username = jwtService.extractUsername(jwt);
+        } else {
+            // Check for JWT token in cookies for web applications
+            jakarta.servlet.http.Cookie[] cookies = request.getCookies();
+            if (cookies != null) {
+                for (jakarta.servlet.http.Cookie cookie : cookies) {
+                    if ("jwt_token".equals(cookie.getName())) {
+                        jwt = cookie.getValue();
+                        username = jwtService.extractUsername(jwt);
+                        break;
+                    }
+                }
+            }
+        }
+
+        // If no JWT found, continue with filter chain
+        if (jwt == null || username == null) {
             filterChain.doFilter(request, response);
             return;
         }
-
-        jwt = authHeader.substring(7);
-        username = jwtService.extractUsername(jwt);
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);

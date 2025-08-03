@@ -1,8 +1,11 @@
 package com.hospitalManagement.hazeify.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -14,6 +17,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.hospitalManagement.hazeify.dto.DoctorDto;
@@ -39,7 +43,20 @@ public class AdminController {
 
     @GetMapping("/health")
     public String healthCheck() {
+        System.out.println("DEBUG: /admin/health endpoint accessed");
         return "Admin controller is working!";
+    }
+
+    @GetMapping("/test")
+    public String testEndpoint() {
+        System.out.println("DEBUG: /admin/test endpoint accessed");
+        return "Admin test endpoint is working!";
+    }
+
+    @GetMapping("/test-page")
+    public String testPage() {
+        System.out.println("DEBUG: /admin/test-page endpoint accessed");
+        return "admin/test";
     }
 
     @GetMapping("/api/health")
@@ -47,58 +64,107 @@ public class AdminController {
         return ResponseEntity.ok("Admin API is working!");
     }
 
+    @GetMapping("/setup")
+    public String setupAdmin(Model model) {
+        try {
+            // Check if admin user already exists
+            if (!userService.existsByEmail("admin@hazeify.com")) {
+                UserDto adminDto = new UserDto();
+                adminDto.setUsername("admin");
+                adminDto.setEmail("admin@hazeify.com");
+                adminDto.setPassword("admin123");
+                adminDto.setFullName("System Administrator");
+                adminDto.setPhoneNumber("+1234567890");
+                adminDto.setRole("ADMIN");
+
+                User adminUser = userService.registerUser(adminDto);
+                model.addAttribute("message", "Admin user created successfully!");
+                model.addAttribute("username", "admin");
+                model.addAttribute("email", "admin@hazeify.com");
+                model.addAttribute("password", "admin123");
+            } else {
+                model.addAttribute("message", "Admin user already exists!");
+                model.addAttribute("username", "admin");
+                model.addAttribute("email", "admin@hazeify.com");
+                model.addAttribute("password", "admin123");
+            }
+        } catch (Exception e) {
+            model.addAttribute("error", "Error creating admin user: " + e.getMessage());
+        }
+        return "admin/setup";
+    }
+
+    @GetMapping("/create-admin")
+    public ResponseEntity<String> createAdminApi() {
+        try {
+            // Check if admin user already exists
+            if (!userService.existsByEmail("admin@hazeify.com")) {
+                UserDto adminDto = new UserDto();
+                adminDto.setUsername("admin");
+                adminDto.setEmail("admin@hazeify.com");
+                adminDto.setPassword("admin123");
+                adminDto.setFullName("System Administrator");
+                adminDto.setPhoneNumber("+1234567890");
+                adminDto.setRole("ADMIN");
+
+                User adminUser = userService.registerUser(adminDto);
+                return ResponseEntity.ok("Admin user created successfully!");
+            } else {
+                return ResponseEntity.ok("Admin user already exists!");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error creating admin user: " + e.getMessage());
+        }
+    }
+
     @GetMapping("/dashboard")
     public String adminDashboard(Model model) {
         try {
-            // Get statistics
             List<Doctor> doctors = doctorService.getAllDoctors();
+            List<User> users = userService.getAllUsers();
             List<Appointment> appointments = appointmentService.getAllAppointments();
 
-            // Handle null lists gracefully
-            doctors = doctors != null ? doctors : List.of();
-            appointments = appointments != null ? appointments : List.of();
-
             long totalDoctors = doctors.size();
-            long availableDoctors = doctors.stream().filter(Doctor::isAvailable).count();
+            long totalUsers = users.size();
             long totalAppointments = appointments.size();
+
+            // Count appointments by status
             long pendingAppointments = appointments.stream()
                     .filter(apt -> apt.getStatus() == Appointment.AppointmentStatus.PENDING).count();
+            long confirmedAppointments = appointments.stream()
+                    .filter(apt -> apt.getStatus() == Appointment.AppointmentStatus.CONFIRMED).count();
             long completedAppointments = appointments.stream()
                     .filter(apt -> apt.getStatus() == Appointment.AppointmentStatus.COMPLETED).count();
 
             model.addAttribute("totalDoctors", totalDoctors);
-            model.addAttribute("availableDoctors", availableDoctors);
+            model.addAttribute("totalUsers", totalUsers);
             model.addAttribute("totalAppointments", totalAppointments);
             model.addAttribute("pendingAppointments", pendingAppointments);
+            model.addAttribute("confirmedAppointments", confirmedAppointments);
             model.addAttribute("completedAppointments", completedAppointments);
-            model.addAttribute("recentAppointments", appointments.stream().limit(5).toList());
 
             return "admin/dashboard";
         } catch (Exception e) {
             model.addAttribute("error", "Error loading dashboard: " + e.getMessage());
-            model.addAttribute("totalDoctors", 0);
-            model.addAttribute("availableDoctors", 0);
-            model.addAttribute("totalAppointments", 0);
-            model.addAttribute("pendingAppointments", 0);
-            model.addAttribute("completedAppointments", 0);
-            model.addAttribute("recentAppointments", List.of());
-            return "admin/dashboard";
+            return "error";
         }
+    }
+
+    @GetMapping("/doctors")
+    public String doctorsRedirect() {
+        return "redirect:/admin/doctors/manage";
     }
 
     @GetMapping("/doctors/manage")
     public String manageDoctors(Model model) {
         try {
             List<Doctor> doctors = doctorService.getAllDoctors();
-            doctors = doctors != null ? doctors : List.of();
             model.addAttribute("doctors", doctors);
             model.addAttribute("doctorDto", new DoctorDto());
-            return "admin_doctors";
+            return "admin/doctors";
         } catch (Exception e) {
             model.addAttribute("error", "Error loading doctors: " + e.getMessage());
-            model.addAttribute("doctors", List.of());
-            model.addAttribute("doctorDto", new DoctorDto());
-            return "admin_doctors";
+            return "error";
         }
     }
 
@@ -112,46 +178,10 @@ public class AdminController {
         }
 
         try {
-            // Validate required fields
-            if (doctorDto.getName() == null || doctorDto.getName().trim().isEmpty()) {
-                redirectAttributes.addFlashAttribute("error", "Doctor name is required");
-                return "redirect:/admin/doctors/manage";
-            }
-
-            if (doctorDto.getEmail() == null || doctorDto.getEmail().trim().isEmpty()) {
-                redirectAttributes.addFlashAttribute("error", "Doctor email is required");
-                return "redirect:/admin/doctors/manage";
-            }
-
-            if (doctorDto.getSpecialization() == null || doctorDto.getSpecialization().trim().isEmpty()) {
-                redirectAttributes.addFlashAttribute("error", "Specialization is required");
-                return "redirect:/admin/doctors/manage";
-            }
-
-            if (doctorDto.getPhoneNumber() == null || doctorDto.getPhoneNumber().trim().isEmpty()) {
-                redirectAttributes.addFlashAttribute("error", "Phone number is required");
-                return "redirect:/admin/doctors/manage";
-            }
-
-            if (doctorDto.getVisitingStartTime() == null) {
-                redirectAttributes.addFlashAttribute("error", "Visiting start time is required");
-                return "redirect:/admin/doctors/manage";
-            }
-
-            if (doctorDto.getVisitingEndTime() == null) {
-                redirectAttributes.addFlashAttribute("error", "Visiting end time is required");
-                return "redirect:/admin/doctors/manage";
-            }
-
-            if (doctorDto.getConsultationFee() == null || doctorDto.getConsultationFee() <= 0) {
-                redirectAttributes.addFlashAttribute("error", "Consultation fee must be greater than 0");
-                return "redirect:/admin/doctors/manage";
-            }
-
             doctorService.createDoctor(doctorDto);
             redirectAttributes.addFlashAttribute("message", "Doctor added successfully!");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "Error adding doctor: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
 
         return "redirect:/admin/doctors/manage";
@@ -163,9 +193,9 @@ public class AdminController {
             Doctor doctor = doctorService.getDoctorById(id);
             DoctorDto doctorDto = new DoctorDto();
             doctorDto.setName(doctor.getName());
-            doctorDto.setSpecialization(doctor.getSpecialization());
             doctorDto.setEmail(doctor.getEmail());
             doctorDto.setPhoneNumber(doctor.getPhoneNumber());
+            doctorDto.setSpecialization(doctor.getSpecialization());
             doctorDto.setDescription(doctor.getDescription());
             doctorDto.setVisitingStartTime(doctor.getVisitingStartTime());
             doctorDto.setVisitingEndTime(doctor.getVisitingEndTime());
@@ -176,7 +206,8 @@ public class AdminController {
             model.addAttribute("doctorId", id);
             return "admin/edit-doctor";
         } catch (Exception e) {
-            return "redirect:/admin/doctors/manage";
+            model.addAttribute("error", "Error loading doctor: " + e.getMessage());
+            return "error";
         }
     }
 
@@ -216,27 +247,24 @@ public class AdminController {
     public String viewAppointments(Model model) {
         try {
             List<Appointment> appointments = appointmentService.getAllAppointments();
-            appointments = appointments != null ? appointments : List.of();
             model.addAttribute("appointments", appointments);
             return "admin/appointments";
         } catch (Exception e) {
             model.addAttribute("error", "Error loading appointments: " + e.getMessage());
-            model.addAttribute("appointments", List.of());
-            return "admin/appointments";
+            return "error";
         }
     }
 
     @GetMapping("/users")
     public String viewUsers(Model model) {
         try {
-            // Get all users from UserService
             List<User> users = userService.getAllUsers();
             model.addAttribute("users", users);
+            model.addAttribute("userDto", new UserDto());
             return "admin/users";
         } catch (Exception e) {
             model.addAttribute("error", "Error loading users: " + e.getMessage());
-            model.addAttribute("users", List.of());
-            return "admin/users";
+            return "error";
         }
     }
 
@@ -249,6 +277,7 @@ public class AdminController {
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
+
         return "redirect:/admin/users";
     }
 
@@ -259,7 +288,8 @@ public class AdminController {
             model.addAttribute("user", user);
             return "admin/edit-user";
         } catch (Exception e) {
-            return "redirect:/admin/users";
+            model.addAttribute("error", "Error loading user: " + e.getMessage());
+            return "error";
         }
     }
 
@@ -268,27 +298,32 @@ public class AdminController {
             @ModelAttribute("userDto") UserDto userDto,
             RedirectAttributes redirectAttributes) {
         try {
-            // Update user logic would go here
+            User user = userService.findById(id);
+            user.setFullName(userDto.getFullName());
+            user.setEmail(userDto.getEmail());
+            user.setPhoneNumber(userDto.getPhoneNumber());
+            userService.updateUser(user);
             redirectAttributes.addFlashAttribute("message", "User updated successfully!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
+
         return "redirect:/admin/users";
     }
 
     @GetMapping("/users/delete/{id}")
     public String deleteUser(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
-            // Delete user logic would go here
+            userService.deleteUser(id);
             redirectAttributes.addFlashAttribute("message", "User deleted successfully!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
+
         return "redirect:/admin/users";
     }
 
-    // ========== REST API ENDPOINTS ==========
-
+    // REST API endpoints
     @GetMapping("/api/doctors")
     public ResponseEntity<List<Doctor>> getAllDoctorsApi() {
         try {
@@ -302,7 +337,6 @@ public class AdminController {
     @PostMapping("/api/doctors")
     public ResponseEntity<Doctor> addDoctorApi(@RequestBody DoctorDto doctorDto) {
         try {
-            // Validate required fields
             if (doctorDto.getName() == null || doctorDto.getName().trim().isEmpty()) {
                 return ResponseEntity.badRequest().build();
             }
@@ -385,6 +419,125 @@ public class AdminController {
             return ResponseEntity.ok(user);
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
+        }
+    }
+
+    // Public endpoint for getting available doctors (no admin authentication
+    // required)
+    @GetMapping("/api/public/doctors")
+    public ResponseEntity<List<Doctor>> getAvailableDoctorsPublic() {
+        try {
+            List<Doctor> doctors = doctorService.getAvailableDoctors();
+            return ResponseEntity.ok(doctors);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    // Debug endpoint to test doctor data
+    @GetMapping("/api/debug/doctors")
+    public ResponseEntity<?> debugDoctors() {
+        try {
+            List<Doctor> allDoctors = doctorService.getAllDoctors();
+            List<Doctor> availableDoctors = doctorService.getAvailableDoctors();
+
+            return ResponseEntity.ok(Map.of(
+                    "totalDoctors", allDoctors.size(),
+                    "availableDoctors", availableDoctors.size(),
+                    "allDoctors", allDoctors,
+                    "availableDoctorsList", availableDoctors));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/appointments/{appointmentId}/status")
+    public String updateAppointmentStatus(@PathVariable Long appointmentId,
+            @RequestParam("status") String status,
+            RedirectAttributes redirectAttributes) {
+        try {
+            Appointment.AppointmentStatus newStatus = Appointment.AppointmentStatus.valueOf(status.toUpperCase());
+            appointmentService.updateAppointmentStatus(appointmentId, newStatus);
+            redirectAttributes.addFlashAttribute("message", "Appointment status updated successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+
+        return "redirect:/admin/appointments";
+    }
+
+    @GetMapping("/profile")
+    public String viewProfile(Model model) {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            User adminUser = userService.findByUsernameOrEmail(authentication.getName());
+
+            if (adminUser == null) {
+                model.addAttribute("error", "User not found");
+                return "error";
+            }
+
+            model.addAttribute("user", adminUser);
+            return "admin/profile";
+        } catch (Exception e) {
+            model.addAttribute("error", "Error loading profile: " + e.getMessage());
+            return "error";
+        }
+    }
+
+    @GetMapping("/profile/edit")
+    public String editProfileForm(Model model) {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            User adminUser = userService.findByUsernameOrEmail(authentication.getName());
+
+            if (adminUser == null) {
+                model.addAttribute("error", "User not found");
+                return "error";
+            }
+
+            model.addAttribute("user", adminUser);
+            return "admin/edit-profile";
+        } catch (Exception e) {
+            model.addAttribute("error", "Error loading profile: " + e.getMessage());
+            return "error";
+        }
+    }
+
+    @PostMapping("/profile/edit")
+    public String updateProfile(@RequestParam("fullName") String fullName,
+            @RequestParam("email") String email,
+            @RequestParam("phoneNumber") String phoneNumber,
+            RedirectAttributes redirectAttributes) {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            User adminUser = userService.findByUsernameOrEmail(authentication.getName());
+
+            if (adminUser == null) {
+                redirectAttributes.addFlashAttribute("error", "User not found");
+                return "redirect:/admin/profile";
+            }
+
+            // Update admin information
+            adminUser.setFullName(fullName);
+            adminUser.setPhoneNumber(phoneNumber);
+
+            // Only update email if it's different and not already taken
+            if (!adminUser.getEmail().equals(email)) {
+                if (userService.existsByEmail(email)) {
+                    redirectAttributes.addFlashAttribute("error", "Email already exists");
+                    return "redirect:/admin/profile/edit";
+                }
+                adminUser.setEmail(email);
+            }
+
+            userService.updateUser(adminUser);
+
+            redirectAttributes.addFlashAttribute("message", "Profile updated successfully!");
+            return "redirect:/admin/profile";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            return "redirect:/admin/profile/edit";
         }
     }
 }

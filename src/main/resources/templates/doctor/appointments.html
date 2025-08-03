@@ -87,6 +87,35 @@
         <!-- Main Content -->
         <div class="col-md-9 col-lg-10">
           <div class="main-content p-4">
+            <!-- Flash Messages -->
+            <div
+              th:if="${message}"
+              class="alert alert-success alert-dismissible fade show"
+              role="alert"
+            >
+              <i class="fas fa-check-circle me-2"></i>
+              <span th:text="${message}"></span>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="alert"
+              ></button>
+            </div>
+
+            <div
+              th:if="${error}"
+              class="alert alert-danger alert-dismissible fade show"
+              role="alert"
+            >
+              <i class="fas fa-exclamation-circle me-2"></i>
+              <span th:text="${error}"></span>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="alert"
+              ></button>
+            </div>
+
             <!-- Header -->
             <div class="d-flex justify-content-between align-items-center mb-4">
               <div>
@@ -118,6 +147,149 @@
                       >
                     </li>
                   </ul>
+                </div>
+              </div>
+            </div>
+
+            <!-- Filter Buttons -->
+            <div class="filter-buttons">
+              <a
+                href="/doctor/appointments"
+                class="btn btn-outline-primary filter-btn"
+              >
+                All
+              </a>
+              <a
+                href="/doctor/appointments/pending"
+                class="btn btn-outline-warning filter-btn"
+              >
+                Pending
+              </a>
+              <a
+                href="/doctor/appointments/confirmed"
+                class="btn btn-outline-info filter-btn"
+              >
+                Confirmed
+              </a>
+              <a
+                href="/doctor/appointments/completed"
+                class="btn btn-outline-success filter-btn"
+              >
+                Completed
+              </a>
+            </div>
+
+            <!-- Appointments List -->
+            <div
+              th:if="${#lists.isEmpty(appointments)}"
+              class="text-center py-5"
+            >
+              <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+              <h4>No appointments found</h4>
+              <p class="text-muted">You don't have any appointments yet.</p>
+            </div>
+
+            <div th:if="${!#lists.isEmpty(appointments)}" class="row">
+              <div
+                th:each="appointment : ${appointments}"
+                class="col-md-6 col-lg-4 mb-3"
+              >
+                <div class="card appointment-card">
+                  <div class="card-body">
+                    <div
+                      class="d-flex justify-content-between align-items-start mb-3"
+                    >
+                      <h6
+                        class="card-title mb-0"
+                        th:text="${appointment.patientName}"
+                      >
+                        Patient Name
+                      </h6>
+                      <span
+                        class="badge status-badge"
+                        th:classappend="${appointment.status == 'PENDING' ? 'bg-warning text-dark' : 
+                                                      appointment.status == 'CONFIRMED' ? 'bg-info text-white' : 
+                                                      appointment.status == 'COMPLETED' ? 'bg-success text-white' : 
+                                                      appointment.status == 'CANCELLED' ? 'bg-danger text-white' : 'bg-secondary text-white'}"
+                        th:text="${appointment.status}"
+                        >Status</span
+                      >
+                    </div>
+
+                    <div class="mb-3">
+                      <p class="mb-1">
+                        <i class="fas fa-calendar me-2 text-muted"></i
+                        ><span
+                          th:text="${#temporals.format(appointment.date, 'dd/MM/yyyy')}"
+                          >Date</span
+                        >
+                      </p>
+                      <p class="mb-1">
+                        <i class="fas fa-clock me-2 text-muted"></i
+                        ><span
+                          th:text="${#temporals.format(appointment.time, 'HH:mm')}"
+                          >Time</span
+                        >
+                      </p>
+                      <p class="mb-1">
+                        <i class="fas fa-envelope me-2 text-muted"></i
+                        ><span th:text="${appointment.email}">Email</span>
+                      </p>
+                      <p class="mb-1">
+                        <i class="fas fa-phone me-2 text-muted"></i
+                        ><span th:text="${appointment.phone}">Phone</span>
+                      </p>
+                      <p
+                        th:if="${appointment.notes != null and appointment.notes != ''}"
+                        class="mb-1"
+                      >
+                        <i class="fas fa-sticky-note me-2 text-muted"></i
+                        ><span th:text="${appointment.notes}">Notes</span>
+                      </p>
+                    </div>
+
+                    <!-- Status Update Form -->
+                    <form
+                      th:action="@{/doctor/appointments/{appointmentId}/status(appointmentId=${appointment.id})}"
+                      method="post"
+                      class="mb-2"
+                    >
+                      <div class="input-group">
+                        <select
+                          name="status"
+                          class="form-select form-select-sm"
+                        >
+                          <option
+                            value="PENDING"
+                            th:selected="${appointment.status == 'PENDING'}"
+                          >
+                            Pending
+                          </option>
+                          <option
+                            value="CONFIRMED"
+                            th:selected="${appointment.status == 'CONFIRMED'}"
+                          >
+                            Confirmed
+                          </option>
+                          <option
+                            value="COMPLETED"
+                            th:selected="${appointment.status == 'COMPLETED'}"
+                          >
+                            Completed
+                          </option>
+                          <option
+                            value="CANCELLED"
+                            th:selected="${appointment.status == 'CANCELLED'}"
+                          >
+                            Cancelled
+                          </option>
+                        </select>
+                        <button type="submit" class="btn btn-sm btn-primary">
+                          <i class="fas fa-save"></i>
+                        </button>
+                      </div>
+                    </form>
+                  </div>
                 </div>
               </div>
             </div>

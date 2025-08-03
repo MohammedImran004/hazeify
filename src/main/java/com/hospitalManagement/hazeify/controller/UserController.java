@@ -88,6 +88,18 @@ public class UserController {
         return "redirect:/login";
     }
 
+    @GetMapping("/logout")
+    public String logout(jakarta.servlet.http.HttpServletResponse response) {
+        // Clear JWT cookie
+        jakarta.servlet.http.Cookie jwtCookie = new jakarta.servlet.http.Cookie("jwt_token", "");
+        jwtCookie.setHttpOnly(true);
+        jwtCookie.setPath("/");
+        jwtCookie.setMaxAge(0); // Delete cookie
+        response.addCookie(jwtCookie);
+
+        return "redirect:/login";
+    }
+
     // REST API endpoints
     @PostMapping("/api/auth/login")
     @ResponseBody

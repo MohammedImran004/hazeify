@@ -77,6 +77,35 @@
         <!-- Main Content -->
         <div class="col-md-9 col-lg-10">
           <div class="main-content p-4">
+            <!-- Flash Messages -->
+            <div
+              th:if="${message}"
+              class="alert alert-success alert-dismissible fade show"
+              role="alert"
+            >
+              <i class="fas fa-check-circle me-2"></i>
+              <span th:text="${message}"></span>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="alert"
+              ></button>
+            </div>
+
+            <div
+              th:if="${error}"
+              class="alert alert-danger alert-dismissible fade show"
+              role="alert"
+            >
+              <i class="fas fa-exclamation-circle me-2"></i>
+              <span th:text="${error}"></span>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="alert"
+              ></button>
+            </div>
+
             <!-- Header -->
             <div class="d-flex justify-content-between align-items-center mb-4">
               <div>
@@ -169,6 +198,35 @@
               </div>
             </div>
 
+            <!-- Filter Buttons -->
+            <div class="mb-4">
+              <div class="btn-group" role="group">
+                <a href="/admin/appointments" class="btn btn-outline-primary"
+                  >All</a
+                >
+                <a
+                  href="/admin/appointments?status=PENDING"
+                  class="btn btn-outline-warning"
+                  >Pending</a
+                >
+                <a
+                  href="/admin/appointments?status=CONFIRMED"
+                  class="btn btn-outline-success"
+                  >Confirmed</a
+                >
+                <a
+                  href="/admin/appointments?status=COMPLETED"
+                  class="btn btn-outline-info"
+                  >Completed</a
+                >
+                <a
+                  href="/admin/appointments?status=CANCELLED"
+                  class="btn btn-outline-danger"
+                  >Cancelled</a
+                >
+              </div>
+            </div>
+
             <!-- Appointments Table -->
             <div class="card">
               <div class="card-header">
@@ -240,31 +298,49 @@
                         </td>
                         <td th:text="${appointment.phone}">+1234567890</td>
                         <td>
-                          <div class="btn-group btn-group-sm">
-                            <button
-                              class="btn btn-outline-primary"
-                              th:onclick="'viewAppointment(' + ${appointment.id} + ')'"
-                              title="View Details"
-                            >
-                              <i class="fas fa-eye"></i>
-                            </button>
-                            <button
-                              class="btn btn-outline-success"
-                              th:if="${appointment.status.name() == 'PENDING'}"
-                              th:onclick="'confirmAppointment(' + ${appointment.id} + ')'"
-                              title="Confirm"
-                            >
-                              <i class="fas fa-check"></i>
-                            </button>
-                            <button
-                              class="btn btn-outline-info"
-                              th:if="${appointment.status.name() == 'CONFIRMED'}"
-                              th:onclick="'completeAppointment(' + ${appointment.id} + ')'"
-                              title="Mark Complete"
-                            >
-                              <i class="fas fa-check-double"></i>
-                            </button>
-                          </div>
+                          <form
+                            th:action="@{/admin/appointments/{appointmentId}/status(appointmentId=${appointment.id})}"
+                            method="post"
+                            class="d-inline"
+                          >
+                            <div class="input-group input-group-sm">
+                              <select
+                                name="status"
+                                class="form-select form-select-sm"
+                              >
+                                <option
+                                  value="PENDING"
+                                  th:selected="${appointment.status.name() == 'PENDING'}"
+                                >
+                                  Pending
+                                </option>
+                                <option
+                                  value="CONFIRMED"
+                                  th:selected="${appointment.status.name() == 'CONFIRMED'}"
+                                >
+                                  Confirmed
+                                </option>
+                                <option
+                                  value="COMPLETED"
+                                  th:selected="${appointment.status.name() == 'COMPLETED'}"
+                                >
+                                  Completed
+                                </option>
+                                <option
+                                  value="CANCELLED"
+                                  th:selected="${appointment.status.name() == 'CANCELLED'}"
+                                >
+                                  Cancelled
+                                </option>
+                              </select>
+                              <button
+                                type="submit"
+                                class="btn btn-sm btn-primary"
+                              >
+                                <i class="fas fa-save"></i>
+                              </button>
+                            </div>
+                          </form>
                         </td>
                       </tr>
                       <tr th:if="${#lists.isEmpty(appointments)}">

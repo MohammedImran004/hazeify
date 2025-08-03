@@ -18,16 +18,21 @@ public class SecurityConfig {
 
         private final JwtAuthenticationFilter jwtAuthFilter;
         private final AuthenticationProvider authenticationProvider;
+        private final CustomAuthenticationSuccessHandler authenticationSuccessHandler;
 
         @Bean
         public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
                 http
                                 .csrf(csrf -> csrf.disable())
                                 .authorizeHttpRequests(auth -> auth
-                                                .requestMatchers("/", "/login", "/signup", "/css/**", "/js/**",
+                                                .requestMatchers("/", "/login", "/signup", "/admin/setup",
+                                                                "/admin/create-admin", "/admin/test-page", "/css/**",
+                                                                "/js/**",
                                                                 "/images/**")
                                                 .permitAll()
                                                 .requestMatchers("/api/auth/**").permitAll()
+                                                .requestMatchers("/api/public/**").permitAll()
+                                                .requestMatchers("/api/debug/**").permitAll()
                                                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                                                 .requestMatchers("/api/doctor/**").hasRole("DOCTOR")
                                                 .requestMatchers("/admin/**").hasRole("ADMIN")
@@ -38,12 +43,12 @@ public class SecurityConfig {
                                                 .requestMatchers("/dashboard").authenticated()
                                                 .anyRequest().authenticated())
                                 .sessionManagement(session -> session
-                                                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+                                                .sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
                                 .authenticationProvider(authenticationProvider)
                                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                                 .formLogin(form -> form
                                                 .loginPage("/login")
-                                                .defaultSuccessUrl("/dashboard", true)
+                                                .successHandler(authenticationSuccessHandler)
                                                 .permitAll())
                                 .logout(logout -> logout
                                                 .logoutUrl("/logout")

@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.hospitalManagement.hazeify.dto.AppointmentDto;
+import com.hospitalManagement.hazeify.dto.UserDto;
 import com.hospitalManagement.hazeify.entity.Appointment;
 import com.hospitalManagement.hazeify.entity.Doctor;
 import com.hospitalManagement.hazeify.entity.User;
@@ -138,5 +139,56 @@ public class PatientController {
         User patient = userService.findByUsernameOrEmail(authentication.getName());
         model.addAttribute("patient", patient);
         return "patient/profile";
+    }
+
+    @GetMapping("/profile/edit")
+    public String editProfileForm(Model model) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User patient = userService.findByUsernameOrEmail(authentication.getName());
+
+        UserDto userDto = new UserDto();
+        userDto.setUsername(patient.getUsername());
+        userDto.setEmail(patient.getEmail());
+        userDto.setFullName(patient.getFullName());
+        userDto.setPhoneNumber(patient.getPhoneNumber());
+        userDto.setRole(patient.getRole().name());
+
+        model.addAttribute("userDto", userDto);
+        model.addAttribute("patient", patient);
+        return "patient/edit-profile";
+    }
+
+    @PostMapping("/profile/edit")
+    public String updateProfile(@Valid @ModelAttribute("userDto") UserDto userDto,
+            BindingResult result,
+            RedirectAttributes redirectAttributes) {
+        if (result.hasErrors()) {
+            return "patient/edit-profile";
+        }
+
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            User currentUser = userService.findByUsernameOrEmail(authentication.getName());
+
+            // Update user information
+            currentUser.setFullName(userDto.getFullName());
+            currentUser.setPhoneNumber(userDto.getPhoneNumber());
+
+            // Only update email if it's different and not already taken
+            if (!currentUser.getEmail().equals(userDto.getEmail())) {
+                if (userService.existsByEmail(userDto.getEmail())) {
+                    redirectAttributes.addFlashAttribute("error", "Email already exists");
+                    return "redirect:/patient/profile/edit";
+                }
+                currentUser.setEmail(userDto.getEmail());
+            }
+
+            userService.updateUser(currentUser);
+            redirectAttributes.addFlashAttribute("message", "Profile updated successfully!");
+            return "redirect:/patient/profile";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            return "redirect:/patient/profile/edit";
+        }
     }
 }

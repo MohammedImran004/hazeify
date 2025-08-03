@@ -1,7 +1,7 @@
 package com.hospitalManagement.hazeify.repository;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -40,7 +40,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
 
         @Query("SELECT COUNT(a) FROM Appointment a WHERE a.doctor.id = :doctorId AND a.date = :date AND a.time = :time AND a.status IN ('PENDING', 'CONFIRMED')")
         long countConflictingAppointments(@Param("doctorId") Long doctorId, @Param("date") LocalDate date,
-                        @Param("time") LocalDateTime time);
+                        @Param("time") LocalTime time);
 
         @Query("SELECT a FROM Appointment a JOIN FETCH a.doctor JOIN FETCH a.patient WHERE a.status = :status")
         List<Appointment> findByStatus(@Param("status") AppointmentStatus status);

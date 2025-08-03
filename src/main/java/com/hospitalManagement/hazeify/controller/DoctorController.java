@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.hospitalManagement.hazeify.entity.Appointment;
@@ -270,6 +271,92 @@ public class DoctorController {
         }
 
         return "redirect:/doctor/appointments";
+    }
+
+    @PostMapping("/appointments/{appointmentId}/status")
+    public String updateAppointmentStatus(@PathVariable Long appointmentId,
+            @RequestParam("status") String status,
+            RedirectAttributes redirectAttributes) {
+        try {
+            AppointmentStatus newStatus = AppointmentStatus.valueOf(status.toUpperCase());
+            appointmentService.updateAppointmentStatus(appointmentId, newStatus);
+            redirectAttributes.addFlashAttribute("message", "Appointment status updated successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+
+        return "redirect:/doctor/appointments";
+    }
+
+    @GetMapping("/profile/edit")
+    public String editProfileForm(Model model) {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            User doctorUser = userService.findByUsernameOrEmail(authentication.getName());
+
+            if (doctorUser == null) {
+                model.addAttribute("error", "User not found");
+                return "error";
+            }
+
+            Doctor doctor = doctorService.getDoctorByEmail(doctorUser.getEmail());
+
+            if (doctor == null) {
+                model.addAttribute("error", "Your email is not registered by the admin");
+                model.addAttribute("userEmail", doctorUser.getEmail());
+                return "doctor/not-registered";
+            }
+
+            model.addAttribute("doctor", doctor);
+            model.addAttribute("user", doctorUser);
+
+            return "doctor/edit-profile";
+        } catch (Exception e) {
+            model.addAttribute("error", "Error loading profile: " + e.getMessage());
+            return "error";
+        }
+    }
+
+    @PostMapping("/profile/edit")
+    public String updateProfile(@RequestParam("name") String name,
+            @RequestParam("email") String email,
+            @RequestParam("phoneNumber") String phoneNumber,
+            @RequestParam("specialization") String specialization,
+            @RequestParam("consultationFee") Double consultationFee,
+            @RequestParam("description") String description,
+            RedirectAttributes redirectAttributes) {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            User doctorUser = userService.findByUsernameOrEmail(authentication.getName());
+
+            if (doctorUser == null) {
+                redirectAttributes.addFlashAttribute("error", "User not found");
+                return "redirect:/doctor/profile";
+            }
+
+            Doctor doctor = doctorService.getDoctorByEmail(doctorUser.getEmail());
+
+            if (doctor == null) {
+                redirectAttributes.addFlashAttribute("error", "Doctor not found");
+                return "redirect:/doctor/profile";
+            }
+
+            // Update doctor information
+            doctor.setName(name);
+            doctor.setEmail(email);
+            doctor.setPhoneNumber(phoneNumber);
+            doctor.setSpecialization(specialization);
+            doctor.setConsultationFee(consultationFee);
+            doctor.setDescription(description);
+
+            doctorService.updateDoctor(doctor);
+
+            redirectAttributes.addFlashAttribute("message", "Profile updated successfully!");
+            return "redirect:/doctor/profile";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            return "redirect:/doctor/profile/edit";
+        }
     }
 
     @GetMapping("/profile")

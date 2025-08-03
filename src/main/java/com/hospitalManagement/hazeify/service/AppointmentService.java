@@ -34,8 +34,17 @@ public class AppointmentService {
             throw new RuntimeException("Doctor is not available for appointments");
         }
 
-        // Parse appointment time
-        LocalTime appointmentTime = LocalTime.parse(appointmentDto.getTime(), DateTimeFormatter.ofPattern("HH:mm:ss"));
+        // Parse appointment time - handle both HH:mm and HH:mm:ss formats
+        LocalTime appointmentTime;
+        try {
+            appointmentTime = LocalTime.parse(appointmentDto.getTime(), DateTimeFormatter.ofPattern("HH:mm:ss"));
+        } catch (Exception e) {
+            try {
+                appointmentTime = LocalTime.parse(appointmentDto.getTime(), DateTimeFormatter.ofPattern("HH:mm"));
+            } catch (Exception e2) {
+                throw new RuntimeException("Invalid time format. Please use HH:mm or HH:mm:ss format");
+            }
+        }
 
         // Check if appointment time is within doctor's visiting hours
         if (appointmentTime.isBefore(doctor.getVisitingStartTime()) ||
@@ -51,7 +60,7 @@ public class AppointmentService {
 
         // Check for conflicting appointments
         long conflictingAppointments = appointmentRepository.countConflictingAppointments(
-                doctor.getId(), appointmentDto.getDate(), appointmentDateTime);
+                doctor.getId(), appointmentDto.getDate(), appointmentTime);
 
         if (conflictingAppointments > 0) {
             throw new RuntimeException("This time slot is already booked");
@@ -80,21 +89,6 @@ public class AppointmentService {
     public Appointment bookAppointment(Long patientId, AppointmentDto appointmentDto) {
         appointmentDto.setPatientId(patientId);
         return bookAppointment(appointmentDto);
-    }
-
-    public Appointment updateAppointmentStatus(Long appointmentId, AppointmentStatus status) {
-        Appointment appointment = appointmentRepository.findById(appointmentId)
-                .orElseThrow(() -> new RuntimeException("Appointment not found"));
-
-        // Only allow status updates if appointment is in the future or current
-        LocalDateTime appointmentDateTime = appointment.getDate().atTime(appointment.getTime());
-        if (appointmentDateTime.isBefore(LocalDateTime.now()) &&
-                status == AppointmentStatus.COMPLETED) {
-            throw new RuntimeException("Cannot mark past appointments as completed");
-        }
-
-        appointment.setStatus(status);
-        return appointmentRepository.save(appointment);
     }
 
     public List<Appointment> getPatientAppointments(Long patientId) {
@@ -139,5 +133,86 @@ public class AppointmentService {
 
     public List<Appointment> getAppointmentsByDoctorAndDate(Long doctorId, LocalDate date) {
         return appointmentRepository.findByDoctorIdAndDate(doctorId, date);
+    }
+
+    /**
+     * Get next available time slots for a doctor on a specific date
+     * Ensures 10-minute gap between appointments
+     */
+    public List<LocalTime> getNextAvailableTimeSlots(Long doctorId, LocalDate date) {
+        Doctor doctor = doctorService.getDoctorById(doctorId);
+        List<Appointment> existingAppointments = getAppointmentsByDoctorAndDate(doctorId, date);
+
+        List<LocalTime> availableSlots = new java.util.ArrayList<>();
+        LocalTime startTime = doctor.getVisitingStartTime();
+        LocalTime endTime = doctor.getVisitingEndTime();
+
+        // Generate 30-minute slots with 10-minute gaps
+        LocalTime currentTime = startTime;
+        while (currentTime.isBefore(endTime)) {
+            LocalTime slotEndTime = currentTime.plusMinutes(30);
+
+            // Check if this slot conflicts with existing appointments
+            boolean isAvailable = true;
+            for (Appointment appointment : existingAppointments) {
+                if (appointment.getStatus() == AppointmentStatus.PENDING ||
+                        appointment.getStatus() == AppointmentStatus.CONFIRMED) {
+
+                    LocalTime appointmentStart = appointment.getTime();
+                    LocalTime appointmentEnd = appointmentStart.plusMinutes(30);
+
+                    // Check for overlap (including 10-minute gap)
+                    if (!(slotEndTime.plusMinutes(10).isBefore(appointmentStart) ||
+                            currentTime.isAfter(appointmentEnd.plusMinutes(10)))) {
+                        isAvailable = false;
+                        break;
+                    }
+                }
+            }
+
+            if (isAvailable) {
+                availableSlots.add(currentTime);
+            }
+
+            currentTime = currentTime.plusMinutes(40); // 30 min slot + 10 min gap
+        }
+
+        return availableSlots;
+    }
+
+    /**
+     * Update appointment status with validation
+     */
+    public Appointment updateAppointmentStatus(Long appointmentId, AppointmentStatus newStatus) {
+        Appointment appointment = getAppointmentById(appointmentId);
+
+        // Validate status transition
+        if (!isValidStatusTransition(appointment.getStatus(), newStatus)) {
+            throw new RuntimeException(
+                    "Invalid status transition from " + appointment.getStatus() + " to " + newStatus);
+        }
+
+        appointment.setStatus(newStatus);
+        return appointmentRepository.save(appointment);
+    }
+
+    /**
+     * Validate status transitions
+     */
+    private boolean isValidStatusTransition(AppointmentStatus currentStatus, AppointmentStatus newStatus) {
+        switch (currentStatus) {
+            case PENDING:
+                return newStatus == AppointmentStatus.CONFIRMED ||
+                        newStatus == AppointmentStatus.CANCELLED;
+            case CONFIRMED:
+                return newStatus == AppointmentStatus.COMPLETED ||
+                        newStatus == AppointmentStatus.CANCELLED;
+            case COMPLETED:
+                return false; // Cannot change completed appointments
+            case CANCELLED:
+                return false; // Cannot change cancelled appointments
+            default:
+                return false;
+        }
     }
 }

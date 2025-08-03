@@ -182,54 +182,37 @@
                     </div>
 
                     <div class="info-item">
-                      <div class="info-label">Date of Birth</div>
+                      <div class="info-label">Account Created</div>
                       <div
                         class="info-value"
-                        th:text="${patient.dateOfBirth != null ? #temporals.format(patient.dateOfBirth, 'dd/MM/yyyy') : 'Not provided'}"
+                        th:text="${patient.createdAt != null ? #temporals.format(patient.createdAt, 'dd/MM/yyyy HH:mm') : 'Not available'}"
                       >
-                        01/01/1990
+                        Not available
                       </div>
                     </div>
                   </div>
 
                   <div class="col-md-6">
                     <div class="info-item">
-                      <div class="info-label">Gender</div>
+                      <div class="info-label">Last Updated</div>
                       <div
                         class="info-value"
-                        th:text="${patient.gender != null ? patient.gender : 'Not specified'}"
+                        th:text="${patient.updatedAt != null ? #temporals.format(patient.updatedAt, 'dd/MM/yyyy HH:mm') : 'Not available'}"
                       >
-                        Not specified
+                        Not available
                       </div>
                     </div>
 
                     <div class="info-item">
-                      <div class="info-label">Address</div>
-                      <div
-                        class="info-value"
-                        th:text="${patient.address != null ? patient.address : 'Not provided'}"
-                      >
-                        Not provided
-                      </div>
-                    </div>
-
-                    <div class="info-item">
-                      <div class="info-label">Blood Group</div>
-                      <div
-                        class="info-value"
-                        th:text="${patient.bloodGroup != null ? patient.bloodGroup : 'Not specified'}"
-                      >
-                        Not specified
-                      </div>
-                    </div>
-
-                    <div class="info-item">
-                      <div class="info-label">Emergency Contact</div>
-                      <div
-                        class="info-value"
-                        th:text="${patient.emergencyContact != null ? patient.emergencyContact : 'Not provided'}"
-                      >
-                        Not provided
+                      <div class="info-label">Account Status</div>
+                      <div class="info-value">
+                        <span
+                          class="badge"
+                          th:class="${patient.enabled ? 'bg-success' : 'bg-danger'}"
+                          th:text="${patient.enabled ? 'Active' : 'Inactive'}"
+                        >
+                          Active
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -262,9 +245,9 @@
                 </div>
 
                 <div class="mt-4 text-center">
-                  <button class="btn btn-primary me-2" onclick="editProfile()">
+                  <a href="/patient/profile/edit" class="btn btn-primary me-2">
                     <i class="fas fa-edit me-2"></i>Edit Profile
-                  </button>
+                  </a>
                   <button
                     class="btn btn-outline-secondary"
                     onclick="changePassword()"

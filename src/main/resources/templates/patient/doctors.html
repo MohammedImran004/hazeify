@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Available Doctors - Patient Dashboard</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      .sidebar {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      }
+      .sidebar .nav-link {
+        color: rgba(255, 255, 255, 0.8);
+        padding: 12px 20px;
+        border-radius: 8px;
+        margin: 2px 0;
+      }
+      .sidebar .nav-link:hover,
+      .sidebar .nav-link.active {
+        color: white;
+        background: rgba(255, 255, 255, 0.1);
+      }
+      .main-content {
+        background: #f8f9fa;
+        min-height: 100vh;
+      }
+      .card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+      }
+      .doctor-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border-left: 4px solid #667eea;
+      }
+      .doctor-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      }
+      .specialization-badge {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+      }
+      .availability-badge {
+        font-size: 0.8em;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container-fluid">
+      <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 px-0">
+          <div class="sidebar p-3">
+            <div class="text-center mb-4">
+              <i class="fas fa-user-injured fa-2x text-white mb-2"></i>
+              <h5 class="text-white">Patient Panel</h5>
+            </div>
+            <nav class="nav flex-column">
+              <a class="nav-link" href="/patient/dashboard">
+                <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+              </a>
+              <a class="nav-link" href="/patient/book-appointment">
+                <i class="fas fa-calendar-plus me-2"></i>Book Appointment
+              </a>
+              <a class="nav-link active" href="/patient/doctors">
+                <i class="fas fa-user-md me-2"></i>View Doctors
+              </a>
+              <a class="nav-link" href="/patient/appointments">
+                <i class="fas fa-calendar-check me-2"></i>My Appointments
+              </a>
+              <a class="nav-link" href="/patient/profile">
+                <i class="fas fa-user me-2"></i>Profile
+              </a>
+              <hr class="text-white" />
+              <a class="nav-link" href="/logout">
+                <i class="fas fa-sign-out-alt me-2"></i>Logout
+              </a>
+            </nav>
+          </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9 col-lg-10">
+          <div class="main-content p-4">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <div>
+                <h2 class="mb-1">Available Doctors</h2>
+                <p class="text-muted mb-0">
+                  Find and book appointments with our specialists
+                </p>
+              </div>
+              <div class="d-flex gap-2">
+                <a href="/patient/book-appointment" class="btn btn-primary">
+                  <i class="fas fa-calendar-plus me-2"></i>Book Appointment
+                </a>
+                <a href="/patient/dashboard" class="btn btn-outline-secondary">
+                  <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                </a>
+              </div>
+            </div>
+
+            <!-- Flash Messages -->
+            <div
+              th:if="${message}"
+              class="alert alert-success alert-dismissible fade show"
+              role="alert"
+            >
+              <i class="fas fa-check-circle me-2"></i>
+              <span th:text="${message}"></span>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="alert"
+              ></button>
+            </div>
+
+            <div
+              th:if="${error}"
+              class="alert alert-danger alert-dismissible fade show"
+              role="alert"
+            >
+              <i class="fas fa-exclamation-circle me-2"></i>
+              <span th:text="${error}"></span>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="alert"
+              ></button>
+            </div>
+
+            <!-- Statistics -->
+            <div class="row mb-4">
+              <div class="col-md-4">
+                <div class="card bg-primary text-white">
+                  <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                      <div>
+                        <h4 class="mb-0" th:text="${#lists.size(doctors)}">
+                          0
+                        </h4>
+                        <small>Total Doctors</small>
+                      </div>
+                      <i class="fas fa-user-md fa-2x opacity-50"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="card bg-success text-white">
+                  <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                      <div>
+                        <h4
+                          class="mb-0"
+                          th:text="${#lists.size(doctors.?[isAvailable])}"
+                        >
+                          0
+                        </h4>
+                        <small>Available</small>
+                      </div>
+                      <i class="fas fa-check-circle fa-2x opacity-50"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="card bg-info text-white">
+                  <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                      <div>
+                        <h4 class="mb-0" th:text="${#lists.size(doctors)}">
+                          0
+                        </h4>
+                        <small>Specializations</small>
+                      </div>
+                      <i class="fas fa-stethoscope fa-2x opacity-50"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Doctors Grid -->
+            <div class="row">
+              <div th:each="doctor : ${doctors}" class="col-md-6 col-lg-4 mb-4">
+                <div class="card doctor-card h-100">
+                  <div class="card-body">
+                    <div
+                      class="d-flex justify-content-between align-items-start mb-3"
+                    >
+                      <div>
+                        <h5 class="card-title mb-1" th:text="${doctor.name}">
+                          Doctor Name
+                        </h5>
+                        <span
+                          class="badge specialization-badge"
+                          th:text="${doctor.specialization}"
+                          >Specialization</span
+                        >
+                      </div>
+                      <span
+                        class="badge availability-badge"
+                        th:class="${doctor.isAvailable ? 'bg-success' : 'bg-danger'}"
+                        th:text="${doctor.isAvailable ? 'Available' : 'Unavailable'}"
+                      >
+                        Available
+                      </span>
+                    </div>
+
+                    <div class="mb-3">
+                      <p
+                        class="text-muted mb-2"
+                        th:if="${doctor.description}"
+                        th:text="${doctor.description}"
+                      >
+                        Doctor description
+                      </p>
+                      <div class="row text-muted small">
+                        <div class="col-6">
+                          <i class="fas fa-envelope me-1"></i>
+                          <span th:text="${doctor.email}"
+                            >email@example.com</span
+                          >
+                        </div>
+                        <div class="col-6">
+                          <i class="fas fa-phone me-1"></i>
+                          <span th:text="${doctor.phoneNumber}"
+                            >+1234567890</span
+                          >
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="mb-3">
+                      <div class="row text-muted small">
+                        <div class="col-6">
+                          <i class="fas fa-clock me-1"></i>
+                          <span
+                            th:text="${doctor.visitingStartTime} + ' - ' + ${doctor.visitingEndTime}"
+                            >09:00 - 17:00</span
+                          >
+                        </div>
+                        <div class="col-6">
+                          <i class="fas fa-dollar-sign me-1"></i>
+                          <span
+                            th:text="${doctor.consultationFee != null ? '$' + doctor.consultationFee : 'Contact for pricing'}"
+                            >$100</span
+                          >
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="d-grid">
+                      <a
+                        th:href="@{/patient/book-appointment/{doctorId}(doctorId=${doctor.id})}"
+                        class="btn btn-primary"
+                        th:class="${doctor.isAvailable ? 'btn-primary' : 'btn-secondary disabled'}"
+                        th:disabled="${!doctor.isAvailable}"
+                      >
+                        <i class="fas fa-calendar-plus me-2"></i>
+                        <span
+                          th:text="${doctor.isAvailable ? 'Book Appointment' : 'Not Available'}"
+                          >Book Appointment</span
+                        >
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- No Doctors Message -->
+            <div th:if="${#lists.isEmpty(doctors)}" class="text-center py-5">
+              <i class="fas fa-user-md fa-4x text-muted mb-3"></i>
+              <h4 class="text-muted">No Doctors Available</h4>
+              <p class="text-muted">
+                There are currently no doctors available. Please check back
+                later.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>

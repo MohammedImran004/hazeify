@@ -253,12 +253,12 @@
         noDoctors.style.display = "none";
 
         try {
-          const response = await fetch("/api/admin/doctors");
+          const response = await fetch("/api/public/doctors");
 
           if (response.ok) {
             const doctors = await response.json();
             const availableDoctors = doctors.filter(
-              (doctor) => doctor.available
+              (doctor) => doctor.isAvailable
             );
 
             if (availableDoctors.length === 0) {

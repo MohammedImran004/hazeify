@@ -1,264 +1,284 @@
 # Hazeify - Hospital Management System
 
-A modern, comprehensive hospital management system built with Spring Boot, featuring appointment booking, doctor management, and role-based access control.
+A comprehensive hospital management system built with Spring Boot, featuring user management, doctor management, appointment booking, and role-based access control.
 
-## 🚀 Features
+## Features
 
-### 📅 Appointment Module
+### 🔐 Authentication & Authorization
 
-- **Public Appointment Booking**: Patients can book appointments without registration
-- **Doctor Appointment Management**: Doctors can view and manage their appointments
-- **Admin Dashboard**: Complete appointment oversight and management
-- **Real-time Availability**: Check doctor availability and time slots
-- **Appointment Status Tracking**: PENDING, CONFIRMED, COMPLETED, CANCELLED
+- JWT-based authentication
+- Role-based access control (Admin, Doctor, Patient)
+- Secure password encryption
+- Session management
+
+### 👥 User Management
+
+- User registration and login
+- Role-based dashboards
+- Profile management
+- Admin user management
 
 ### 👨‍⚕️ Doctor Management
 
-- **Doctor Profiles**: Complete doctor information with specializations
-- **Shift Management**: Configure doctor availability and shift timings
-- **Specialization Tracking**: Organize doctors by medical specialties
-- **Availability Control**: Enable/disable doctor availability
+- Doctor registration and profiles
+- Specialization management
+- Availability settings
+- Consultation fee management
 
-### 🔐 Role-Based Access Control
+### 📅 Appointment System
 
-- **Patient Access**: Book appointments and view personal records
-- **Doctor Access**: Manage appointments and patient information
-- **Admin Access**: Full system management and oversight
+- Book appointments with available doctors
+- Appointment status tracking (Pending, Confirmed, Completed, Cancelled)
+- Time slot validation
+- Conflict detection
 
-## 🛠️ Technology Stack
+### 📊 Admin Dashboard
 
-- **Backend**: Spring Boot 3.x, Spring Security, JWT
-- **Database**: JPA/Hibernate with H2 (development)
-- **Frontend**: HTML5, CSS3, JavaScript (Vanilla)
+- System statistics
+- User management
+- Doctor management
+- Appointment overview
+
+## Technology Stack
+
+- **Backend**: Spring Boot 3.x
+- **Database**: MySQL 8.0
+- **Security**: Spring Security with JWT
+- **Frontend**: Thymeleaf, Bootstrap 5, JavaScript
 - **Build Tool**: Maven
 
-## 📁 Project Structure
-
-```
-src/main/java/com/hospitalManagement/hazeify/
-├── config/                 # Configuration classes
-├── controller/            # REST and MVC controllers
-│   ├── AdminController.java
-│   ├── AdminRestController.java
-│   ├── AppointmentController.java
-│   ├── DoctorController.java
-│   ├── DoctorDashboardController.java
-│   ├── HomeController.java
-│   └── ...
-├── dto/                   # Data Transfer Objects
-│   ├── AppointmentDto.java
-│   ├── DoctorDto.java
-│   └── ...
-├── entity/               # JPA entities
-│   ├── Appointment.java
-│   ├── Doctor.java
-│   ├── User.java
-│   └── ...
-├── repository/           # Data access layer
-│   ├── AppointmentRepository.java
-│   ├── DoctorRepository.java
-│   └── ...
-├── security/            # Security configuration
-│   ├── SecurityConfig.java
-│   ├── JwtService.java
-│   └── ...
-└── service/             # Business logic
-    ├── AppointmentService.java
-    ├── DoctorService.java
-    └── ...
-```
-
-## 🚀 Getting Started
-
-### Prerequisites
+## Prerequisites
 
 - Java 17 or higher
+- MySQL 8.0 or higher
 - Maven 3.6 or higher
 
-### Installation
+## Quick Setup
 
-1. **Clone the repository**
+### 1. Database Setup
 
-   ```bash
-   git clone <repository-url>
-   cd hazeify
-   ```
+Create a MySQL database:
 
-2. **Build the project**
+```sql
+CREATE DATABASE hazeify;
+```
 
-   ```bash
-   mvn clean install
-   ```
+### 2. Environment Configuration
 
-3. **Run the application**
+Copy the environment file and configure your database:
 
-   ```bash
-   mvn spring-boot:run
-   ```
+```bash
+cp env.example .env
+```
 
-4. **Access the application**
-   - Main application: http://localhost:8080
-   - Appointment booking: http://localhost:8080/appointments/book
-   - Doctor appointments: http://localhost:8080/doctor/appointments
-   - Admin dashboard: http://localhost:8080/admin/dashboard
+Update the database configuration in `src/main/resources/application.properties`:
 
-## 📋 API Endpoints
+```properties
+spring.datasource.url=jdbc:mysql://localhost:3306/hazeify?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+spring.datasource.username=your_username
+spring.datasource.password=your_password
+```
 
-### Appointment Management
+### 3. Build and Run
 
-- `POST /appointments` - Book a new appointment
-- `GET /appointments/doctor/{doctorId}` - Get appointments for a doctor
-- `GET /appointments/doctor/{doctorId}?date=YYYY-MM-DD` - Get appointments by date
+```bash
+# Build the project
+mvn clean install
 
-### Doctor Management (Admin)
+# Run the application
+mvn spring-boot:run
+```
 
+The application will be available at: `http://localhost:8080`
+
+## Test Credentials
+
+### Admin Access
+
+- **Username**: `admin`
+- **Email**: `admin@hazeify.com`
+- **Password**: `admin123`
+
+### Sample Patients
+
+- **Username**: `john.doe`
+- **Email**: `john.doe@example.com`
+- **Password**: `patient123`
+
+- **Username**: `jane.smith`
+- **Email**: `jane.smith@example.com`
+- **Password**: `patient123`
+
+### Sample Doctors (Created Automatically)
+
+- **Dr. Sarah Johnson** - Cardiology
+- **Dr. Michael Chen** - Neurology
+- **Dr. Emily Rodriguez** - Pediatrics
+
+## API Endpoints
+
+### Public Endpoints
+
+- `GET /` - Home page
+- `GET /login` - Login page
+- `GET /signup` - Registration page
+- `GET /api/public/doctors` - Get available doctors
+
+### Authentication Endpoints
+
+- `POST /api/auth/login` - User login
+- `POST /api/auth/register` - User registration
+
+### Admin Endpoints
+
+- `GET /admin/dashboard` - Admin dashboard
+- `GET /admin/doctors/manage` - Manage doctors
+- `GET /admin/users` - Manage users
+- `GET /admin/appointments` - View all appointments
 - `GET /api/admin/doctors` - List all doctors
 - `POST /api/admin/doctors` - Add new doctor
 - `PUT /api/admin/doctors/{id}` - Update doctor information
 - `DELETE /api/admin/doctors/{id}` - Delete doctor
 
-### Doctor Dashboard
+### Patient Endpoints
 
-- `GET /api/doctor/appointments` - Get logged-in doctor's appointments
-- `GET /api/doctor/appointments?date=YYYY-MM-DD` - Filter appointments by date
+- `GET /patient/dashboard` - Patient dashboard
+- `GET /patient/book-appointment` - Book appointment
+- `GET /patient/appointments` - View my appointments
+- `GET /patient/profile` - Patient profile
 
-## 🎨 User Interface
+### Doctor Endpoints
 
-### Public Pages
+- `GET /doctor/dashboard` - Doctor dashboard
+- `GET /doctor/appointments` - View appointments
+- `GET /doctor/profile` - Doctor profile
 
-- **Home Page** (`/`): Landing page with navigation to all features
-- **Appointment Booking** (`/appointments/book`): Public form to book appointments
+## Database Schema
 
-### Role-Specific Pages
+### Users Table
 
-- **Doctor Appointments** (`/doctor/appointments`): Doctor's appointment management
-- **Admin Doctor Management** (`/admin/doctors/manage`): Admin's doctor management interface
+- `id` - Primary key
+- `username` - Unique username
+- `email` - Unique email
+- `password` - Encrypted password
+- `full_name` - User's full name
+- `phone_number` - Contact number
+- `role` - User role (ADMIN, DOCTOR, PATIENT)
+- `enabled` - Account status
+- `created_at` - Creation timestamp
+- `updated_at` - Last update timestamp
 
-## 🔐 Security & Access Control
+### Doctors Table
 
-### Role-Based Routes
+- `id` - Primary key
+- `name` - Doctor's name
+- `specialization` - Medical specialization
+- `email` - Unique email
+- `phone_number` - Contact number
+- `description` - Doctor description
+- `visiting_start_time` - Start of visiting hours
+- `visiting_end_time` - End of visiting hours
+- `consultation_fee` - Fee amount
+- `is_available` - Availability status
+- `created_at` - Creation timestamp
+- `updated_at` - Last update timestamp
 
-- **Public**: `/`, `/appointments/book`, `/appointments` (POST)
-- **Admin Only**: `/admin/**`, `/api/admin/**`
-- **Doctor Only**: `/doctor/**`, `/api/doctor/**`
-- **Patient Only**: `/patient/**`
+### Appointments Table
 
-### Authentication
+- `id` - Primary key
+- `patient_name` - Patient's name
+- `email` - Patient's email
+- `phone` - Patient's phone
+- `patient_id` - Reference to user (if registered)
+- `doctor_id` - Reference to doctor
+- `appointment_date` - Appointment date
+- `appointment_time` - Appointment time
+- `status` - Appointment status
+- `notes` - Additional notes
+- `created_at` - Creation timestamp
+- `updated_at` - Last update timestamp
 
-- JWT-based authentication
-- Form-based login
-- Role-based authorization
+## Troubleshooting
 
-## 📊 Database Schema
+### Common Issues
 
-### Appointment Entity
+1. **Database Connection Error**
 
-```java
-- id (Long)
-- patientName (String)
-- email (String)
-- phone (String)
-- patient (User) - ManyToOne
-- doctor (Doctor) - ManyToOne
-- date (LocalDate)
-- time (LocalTime)
-- status (AppointmentStatus)
-- notes (String)
+   - Ensure MySQL is running
+   - Check database credentials in `application.properties`
+   - Verify database exists
+
+2. **Port Already in Use**
+
+   - Change port in `application.properties`: `server.port=8081`
+
+3. **JWT Token Issues**
+
+   - Check JWT secret key configuration
+   - Ensure proper token format
+
+4. **Appointment Booking Issues**
+   - Verify doctor availability
+   - Check appointment time conflicts
+   - Ensure time is within doctor's visiting hours
+
+### Logs
+
+Enable debug logging by adding to `application.properties`:
+
+```properties
+logging.level.com.hospitalManagement.hazeify=DEBUG
+logging.level.org.springframework.security=DEBUG
 ```
 
-### Doctor Entity
+## Development
 
-```java
-- id (Long)
-- name (String)
-- specialization (String)
-- email (String)
-- phoneNumber (String)
-- visitingStartTime (LocalTime)
-- visitingEndTime (LocalTime)
-- consultationFee (Double)
-- isAvailable (Boolean)
+### Project Structure
+
+```
+src/
+├── main/
+│   ├── java/
+│   │   └── com/hospitalManagement/hazeify/
+│   │       ├── config/          # Configuration classes
+│   │       ├── controller/      # REST controllers
+│   │       ├── dto/            # Data Transfer Objects
+│   │       ├── entity/         # JPA entities
+│   │       ├── repository/     # Data access layer
+│   │       ├── security/       # Security configuration
+│   │       └── service/        # Business logic
+│   └── resources/
+│       ├── templates/          # Thymeleaf templates
+│       └── application.properties
+└── test/                       # Test files
 ```
 
-## 🎯 Key Features Implementation
+### Adding New Features
 
-### 1. Appointment Booking Flow
+1. **New Entity**: Create entity class in `entity/` package
+2. **Repository**: Create repository interface in `repository/` package
+3. **Service**: Create service class in `service/` package
+4. **Controller**: Create controller in `controller/` package
+5. **DTO**: Create DTO class in `dto/` package if needed
+6. **Template**: Create Thymeleaf template in `templates/` package
 
-1. Patient accesses `/appointments/book`
-2. Fills appointment form with patient details
-3. Selects doctor from available list
-4. Chooses date and time
-5. System validates availability and creates appointment
+## Security Features
 
-### 2. Doctor Dashboard
+- Password encryption using BCrypt
+- JWT token-based authentication
+- Role-based access control
+- CSRF protection (disabled for API endpoints)
+- Session management
+- Input validation and sanitization
 
-1. Doctor logs in and accesses `/doctor/appointments`
-2. Views all appointments with filtering options
-3. Can filter by date and status
-4. Real-time statistics display
+## Performance Optimizations
 
-### 3. Admin Management
+- Lazy loading for entity relationships
+- Database indexing on frequently queried fields
+- Connection pooling
+- Caching for static data
 
-1. Admin accesses `/admin/doctors/manage`
-2. Views all doctors in a table format
-3. Can add, edit, and delete doctors
-4. Manages doctor availability and shift timings
-
-## 🧪 Testing
-
-### Manual Testing
-
-1. **Appointment Booking**: Test the public appointment form
-2. **Doctor Management**: Test admin CRUD operations
-3. **Role Access**: Verify role-based access control
-4. **Data Validation**: Test form validation and error handling
-
-### API Testing
-
-Use tools like Postman or curl to test REST endpoints:
-
-```bash
-# Book an appointment
-curl -X POST http://localhost:8080/appointments \
-  -H "Content-Type: application/json" \
-  -d '{
-    "patientName": "John Doe",
-    "email": "john@example.com",
-    "phone": "1234567890",
-    "doctorId": 1,
-    "date": "2024-01-15",
-    "time": "10:00:00",
-    "notes": "Regular checkup"
-  }'
-```
-
-## 🚀 Deployment
-
-### Development
-
-```bash
-mvn spring-boot:run
-```
-
-### Production
-
-```bash
-mvn clean package
-java -jar target/hazeify-0.0.1-SNAPSHOT.jar
-```
-
-## 📝 Configuration
-
-### Application Properties
-
-Key configuration in `application.properties`:
-
-- Database connection settings
-- JWT secret key
-- Server port configuration
-- Logging levels
-
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create a feature branch
@@ -266,17 +286,10 @@ Key configuration in `application.properties`:
 4. Add tests if applicable
 5. Submit a pull request
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License.
 
-## 🆘 Support
+## Support
 
-For support and questions:
-
-- Create an issue in the repository
-- Contact the development team
-
----
-
-**Hazeify** - Modern Hospital Management System 🏥
+For support and questions, please contact the development team or create an issue in the repository.

@@ -87,4 +87,8 @@ public class DoctorService {
         return doctorRepository.findBySpecialization(specialization);
     }
 
+    public Doctor updateDoctor(Doctor doctor) {
+        return doctorRepository.save(doctor);
+    }
+
 }
