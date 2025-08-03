@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Book Appointment - Hazeify</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+
+      .container {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        padding: 40px;
+        width: 100%;
+        max-width: 600px;
+      }
+
+      .header {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+
+      .header h1 {
+        color: #333;
+        margin-bottom: 10px;
+        font-size: 2.5em;
+      }
+
+      .header p {
+        color: #666;
+        font-size: 1.1em;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 8px;
+        color: #333;
+        font-weight: 600;
+      }
+
+      input,
+      select,
+      textarea {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid #e1e5e9;
+        border-radius: 8px;
+        font-size: 16px;
+        transition: border-color 0.3s ease;
+      }
+
+      input:focus,
+      select:focus,
+      textarea:focus {
+        outline: none;
+        border-color: #667eea;
+      }
+
+      .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+
+      .btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 15px 30px;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s ease;
+        width: 100%;
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+      }
+
+      .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .alert {
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        display: none;
+      }
+
+      .alert-success {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+
+      .alert-error {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+      }
+
+      .loading {
+        display: none;
+        text-align: center;
+        margin: 20px 0;
+      }
+
+      .spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #667eea;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>Book Your Appointment</h1>
+        <p>Schedule a consultation with our experienced doctors</p>
+      </div>
+
+      <div id="alert" class="alert"></div>
+      <div id="loading" class="loading">
+        <div class="spinner"></div>
+        <p>Loading doctors...</p>
+      </div>
+
+      <form id="appointmentForm">
+        <div class="form-group">
+          <label for="patientName">Full Name *</label>
+          <input type="text" id="patientName" name="patientName" required />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="email">Email *</label>
+            <input type="email" id="email" name="email" required />
+          </div>
+          <div class="form-group">
+            <label for="phone">Phone Number *</label>
+            <input type="tel" id="phone" name="phone" required />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="doctorId">Select Doctor *</label>
+          <select id="doctorId" name="doctorId" required>
+            <option value="">Choose a doctor...</option>
+          </select>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="date">Appointment Date *</label>
+            <input type="date" id="date" name="date" required />
+          </div>
+          <div class="form-group">
+            <label for="time">Appointment Time *</label>
+            <input type="time" id="time" name="time" required />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="notes">Additional Notes</label>
+          <textarea
+            id="notes"
+            name="notes"
+            rows="4"
+            placeholder="Any specific concerns or information you'd like to share..."
+          ></textarea>
+        </div>
+
+        <button type="submit" class="btn" id="submitBtn">
+          Book Appointment
+        </button>
+      </form>
+    </div>
+
+    <script>
+      // Set minimum date to today
+      const today = new Date().toISOString().split("T")[0];
+      document.getElementById("date").min = today;
+
+      // Load doctors on page load
+      document.addEventListener("DOMContentLoaded", function () {
+        loadDoctors();
+      });
+
+      async function loadDoctors() {
+        const loading = document.getElementById("loading");
+        const doctorSelect = document.getElementById("doctorId");
+
+        loading.style.display = "block";
+
+        try {
+          const response = await fetch("/api/admin/doctors");
+          if (response.ok) {
+            const doctors = await response.json();
+
+            doctors.forEach((doctor) => {
+              if (doctor.available) {
+                const option = document.createElement("option");
+                option.value = doctor.id;
+                option.textContent = `${doctor.name} - ${doctor.specialization}`;
+                doctorSelect.appendChild(option);
+              }
+            });
+          } else {
+            showAlert("Failed to load doctors. Please try again.", "error");
+          }
+        } catch (error) {
+          showAlert(
+            "Error loading doctors. Please check your connection.",
+            "error"
+          );
+        } finally {
+          loading.style.display = "none";
+        }
+      }
+
+      document
+        .getElementById("appointmentForm")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
+
+          const submitBtn = document.getElementById("submitBtn");
+          const originalText = submitBtn.textContent;
+
+          submitBtn.disabled = true;
+          submitBtn.textContent = "Booking...";
+
+          const formData = new FormData(e.target);
+          const appointmentData = {
+            patientName: formData.get("patientName"),
+            email: formData.get("email"),
+            phone: formData.get("phone"),
+            doctorId: parseInt(formData.get("doctorId")),
+            date: formData.get("date"),
+            time: formData.get("time") + ":00", // Add seconds to match LocalTime format
+            notes: formData.get("notes") || "",
+          };
+
+          try {
+            const response = await fetch("/appointments", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(appointmentData),
+            });
+
+            if (response.ok) {
+              const appointment = await response.json();
+              showAlert(
+                "Appointment booked successfully! We will contact you soon.",
+                "success"
+              );
+              e.target.reset();
+            } else {
+              const errorData = await response.json();
+              showAlert(
+                errorData.message ||
+                  "Failed to book appointment. Please try again.",
+                "error"
+              );
+            }
+          } catch (error) {
+            showAlert(
+              "Error booking appointment. Please check your connection.",
+              "error"
+            );
+          } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalText;
+          }
+        });
+
+      function showAlert(message, type) {
+        const alert = document.getElementById("alert");
+        alert.textContent = message;
+        alert.className = `alert alert-${type}`;
+        alert.style.display = "block";
+
+        setTimeout(() => {
+          alert.style.display = "none";
+        }, 5000);
+      }
+    </script>
+  </body>
+</html>

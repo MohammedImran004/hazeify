@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hazeify - Hospital Management System</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+      }
+
+      .header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 50px 30px;
+        text-align: center;
+      }
+
+      .header h1 {
+        font-size: 3em;
+        margin-bottom: 15px;
+      }
+
+      .header p {
+        font-size: 1.2em;
+        opacity: 0.9;
+        margin-bottom: 30px;
+      }
+
+      .nav-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      .btn {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        padding: 12px 25px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+      }
+
+      .btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+        border-color: rgba(255, 255, 255, 0.5);
+        transform: translateY(-2px);
+      }
+
+      .content {
+        padding: 50px 30px;
+      }
+
+      .features {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 30px;
+        margin-bottom: 50px;
+      }
+
+      .feature-card {
+        background: #f8f9fa;
+        padding: 30px;
+        border-radius: 15px;
+        text-align: center;
+        border-left: 4px solid #667eea;
+        transition: transform 0.3s ease;
+      }
+
+      .feature-card:hover {
+        transform: translateY(-5px);
+      }
+
+      .feature-icon {
+        font-size: 3em;
+        margin-bottom: 20px;
+        color: #667eea;
+      }
+
+      .feature-title {
+        font-size: 1.5em;
+        font-weight: bold;
+        margin-bottom: 15px;
+        color: #333;
+      }
+
+      .feature-description {
+        color: #666;
+        line-height: 1.6;
+        margin-bottom: 20px;
+      }
+
+      .footer {
+        background: #f8f9fa;
+        padding: 30px;
+        text-align: center;
+        color: #666;
+        border-top: 1px solid #e9ecef;
+      }
+
+      .welcome-section {
+        text-align: center;
+        margin-bottom: 50px;
+      }
+
+      .welcome-title {
+        font-size: 2.5em;
+        color: #333;
+        margin-bottom: 20px;
+      }
+
+      .welcome-description {
+        font-size: 1.2em;
+        color: #666;
+        line-height: 1.6;
+        margin-bottom: 30px;
+      }
+
+      .cta-section {
+        background: #f8f9fa;
+        padding: 40px;
+        border-radius: 15px;
+        text-align: center;
+        margin-bottom: 40px;
+      }
+
+      .cta-title {
+        font-size: 2em;
+        color: #333;
+        margin-bottom: 15px;
+      }
+
+      .cta-description {
+        color: #666;
+        margin-bottom: 25px;
+      }
+
+      .cta-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 15px 30px;
+        border: none;
+        border-radius: 8px;
+        font-size: 18px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s ease;
+        text-decoration: none;
+        display: inline-block;
+      }
+
+      .cta-btn:hover {
+        transform: translateY(-2px);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>🏥 Hazeify</h1>
+        <p>Modern Hospital Management System</p>
+        <div class="nav-buttons">
+          <a href="/login" class="btn">Login</a>
+          <a href="/signup" class="btn">Sign Up</a>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="welcome-section">
+          <h2 class="welcome-title">Welcome to Hazeify</h2>
+          <p class="welcome-description">
+            A comprehensive hospital management system designed to streamline healthcare operations, 
+            improve patient care, and enhance the efficiency of medical professionals.
+          </p>
+        </div>
+
+        <div class="cta-section">
+          <h3 class="cta-title">Ready to Get Started?</h3>
+          <p class="cta-description">
+            Join our platform to experience modern healthcare management. 
+            Login to access your personalized dashboard.
+          </p>
+          <a href="/login" class="cta-btn">Login Now</a>
+        </div>
+
+        <div class="features">
+          <div class="feature-card">
+            <div class="feature-icon">⚡</div>
+            <div class="feature-title">Fast & Efficient</div>
+            <div class="feature-description">
+              Streamlined appointment booking and management system for better healthcare delivery.
+            </div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🔒</div>
+            <div class="feature-title">Secure & Private</div>
+            <div class="feature-description">
+              Your medical information is protected with industry-standard security measures.
+            </div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">📱</div>
+            <div class="feature-title">Easy to Use</div>
+            <div class="feature-description">
+              Intuitive interface designed for patients, doctors, and administrators.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer">
+        <p>
+          &copy; 2024 Hazeify Hospital Management System. All rights reserved.
+        </p>
+      </div>
+    </div>
+  </body>
+</html>

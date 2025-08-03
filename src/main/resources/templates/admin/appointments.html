@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Appointments - Admin Dashboard</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      .sidebar {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      }
+      .sidebar .nav-link {
+        color: rgba(255, 255, 255, 0.8);
+        padding: 12px 20px;
+        border-radius: 8px;
+        margin: 2px 0;
+      }
+      .sidebar .nav-link:hover,
+      .sidebar .nav-link.active {
+        color: white;
+        background: rgba(255, 255, 255, 0.1);
+      }
+      .main-content {
+        background: #f8f9fa;
+        min-height: 100vh;
+      }
+      .card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+      }
+      .status-badge {
+        font-size: 0.8em;
+        padding: 4px 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container-fluid">
+      <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 px-0">
+          <div class="sidebar p-3">
+            <div class="text-center mb-4">
+              <i class="fas fa-user-shield fa-2x text-white mb-2"></i>
+              <h5 class="text-white">Admin Panel</h5>
+            </div>
+            <nav class="nav flex-column">
+              <a class="nav-link" href="/admin/dashboard">
+                <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+              </a>
+              <a class="nav-link" href="/admin/doctors/manage">
+                <i class="fas fa-user-md me-2"></i>Manage Doctors
+              </a>
+              <a class="nav-link active" href="/admin/appointments">
+                <i class="fas fa-calendar-check me-2"></i>Appointments
+              </a>
+              <a class="nav-link" href="/admin/users">
+                <i class="fas fa-users me-2"></i>Users
+              </a>
+              <hr class="text-white" />
+              <a class="nav-link" href="/logout">
+                <i class="fas fa-sign-out-alt me-2"></i>Logout
+              </a>
+            </nav>
+          </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9 col-lg-10">
+          <div class="main-content p-4">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <div>
+                <h2 class="mb-1">All Appointments</h2>
+                <p class="text-muted mb-0">Manage and view all appointments</p>
+              </div>
+              <div class="d-flex gap-2">
+                <button
+                  class="btn btn-outline-primary"
+                  onclick="window.print()"
+                >
+                  <i class="fas fa-print me-2"></i>Print
+                </button>
+                <a href="/admin/dashboard" class="btn btn-outline-secondary">
+                  <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                </a>
+              </div>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="row mb-4">
+              <div class="col-md-3">
+                <div class="card bg-primary text-white">
+                  <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                      <div>
+                        <h4 class="mb-0" th:text="${#lists.size(appointments)}">
+                          0
+                        </h4>
+                        <small>Total Appointments</small>
+                      </div>
+                      <i class="fas fa-calendar fa-2x opacity-50"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="card bg-warning text-white">
+                  <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                      <div>
+                        <h4
+                          class="mb-0"
+                          th:text="${#lists.size(appointments.?[status.name() == 'PENDING'])}"
+                        >
+                          0
+                        </h4>
+                        <small>Pending</small>
+                      </div>
+                      <i class="fas fa-clock fa-2x opacity-50"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="card bg-success text-white">
+                  <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                      <div>
+                        <h4
+                          class="mb-0"
+                          th:text="${#lists.size(appointments.?[status.name() == 'CONFIRMED'])}"
+                        >
+                          0
+                        </h4>
+                        <small>Confirmed</small>
+                      </div>
+                      <i class="fas fa-check fa-2x opacity-50"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="card bg-info text-white">
+                  <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                      <div>
+                        <h4
+                          class="mb-0"
+                          th:text="${#lists.size(appointments.?[status.name() == 'COMPLETED'])}"
+                        >
+                          0
+                        </h4>
+                        <small>Completed</small>
+                      </div>
+                      <i class="fas fa-check-double fa-2x opacity-50"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Appointments Table -->
+            <div class="card">
+              <div class="card-header">
+                <h5 class="mb-0">Appointment List</h5>
+              </div>
+              <div class="card-body">
+                <div class="table-responsive">
+                  <table class="table table-hover">
+                    <thead>
+                      <tr>
+                        <th>ID</th>
+                        <th>Patient</th>
+                        <th>Doctor</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Status</th>
+                        <th>Phone</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr th:each="appointment : ${appointments}">
+                        <td th:text="${appointment.id}">1</td>
+                        <td>
+                          <div>
+                            <strong th:text="${appointment.patientName}"
+                              >Patient Name</strong
+                            >
+                            <br />
+                            <small
+                              class="text-muted"
+                              th:text="${appointment.email}"
+                              >email@example.com</small
+                            >
+                          </div>
+                        </td>
+                        <td>
+                          <div>
+                            <strong th:text="${appointment.doctor.name}"
+                              >Doctor Name</strong
+                            >
+                            <br />
+                            <small
+                              class="text-muted"
+                              th:text="${appointment.doctor.specialization}"
+                              >Specialization</small
+                            >
+                          </div>
+                        </td>
+                        <td
+                          th:text="${#temporals.format(appointment.date, 'dd/MM/yyyy')}"
+                        >
+                          01/01/2024
+                        </td>
+                        <td
+                          th:text="${#temporals.format(appointment.time, 'HH:mm')}"
+                        >
+                          09:00
+                        </td>
+                        <td>
+                          <span
+                            th:class="${'badge ' + 
+                                                    (appointment.status.name() == 'PENDING' ? 'bg-warning' : 
+                                                     appointment.status.name() == 'CONFIRMED' ? 'bg-success' : 
+                                                     appointment.status.name() == 'COMPLETED' ? 'bg-info' : 'bg-secondary')}"
+                            th:text="${appointment.status}"
+                            >PENDING</span
+                          >
+                        </td>
+                        <td th:text="${appointment.phone}">+1234567890</td>
+                        <td>
+                          <div class="btn-group btn-group-sm">
+                            <button
+                              class="btn btn-outline-primary"
+                              th:onclick="'viewAppointment(' + ${appointment.id} + ')'"
+                              title="View Details"
+                            >
+                              <i class="fas fa-eye"></i>
+                            </button>
+                            <button
+                              class="btn btn-outline-success"
+                              th:if="${appointment.status.name() == 'PENDING'}"
+                              th:onclick="'confirmAppointment(' + ${appointment.id} + ')'"
+                              title="Confirm"
+                            >
+                              <i class="fas fa-check"></i>
+                            </button>
+                            <button
+                              class="btn btn-outline-info"
+                              th:if="${appointment.status.name() == 'CONFIRMED'}"
+                              th:onclick="'completeAppointment(' + ${appointment.id} + ')'"
+                              title="Mark Complete"
+                            >
+                              <i class="fas fa-check-double"></i>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                      <tr th:if="${#lists.isEmpty(appointments)}">
+                        <td colspan="8" class="text-center text-muted py-4">
+                          <i class="fas fa-calendar-times fa-3x mb-3"></i>
+                          <p>No appointments found</p>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Appointment Details Modal -->
+    <div class="modal fade" id="appointmentModal" tabindex="-1">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Appointment Details</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
+          <div class="modal-body" id="appointmentModalBody">
+            <!-- Content will be loaded here -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      function viewAppointment(id) {
+        // This would typically load appointment details via AJAX
+        alert("View appointment details for ID: " + id);
+      }
+
+      function confirmAppointment(id) {
+        if (confirm("Are you sure you want to confirm this appointment?")) {
+          // This would typically make an AJAX call to confirm the appointment
+          alert("Appointment confirmed: " + id);
+          location.reload();
+        }
+      }
+
+      function completeAppointment(id) {
+        if (
+          confirm(
+            "Are you sure you want to mark this appointment as completed?"
+          )
+        ) {
+          // This would typically make an AJAX call to complete the appointment
+          alert("Appointment completed: " + id);
+          location.reload();
+        }
+      }
+    </script>
+  </body>
+</html>

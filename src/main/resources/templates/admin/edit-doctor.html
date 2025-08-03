@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Edit Doctor - Admin Dashboard</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      .sidebar {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      }
+      .sidebar .nav-link {
+        color: rgba(255, 255, 255, 0.8);
+        padding: 12px 20px;
+        border-radius: 8px;
+        margin: 2px 0;
+      }
+      .sidebar .nav-link:hover,
+      .sidebar .nav-link.active {
+        color: white;
+        background: rgba(255, 255, 255, 0.1);
+      }
+      .main-content {
+        background: #f8f9fa;
+        min-height: 100vh;
+      }
+      .card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container-fluid">
+      <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 px-0">
+          <div class="sidebar p-3">
+            <div class="text-center mb-4">
+              <i class="fas fa-user-shield fa-2x text-white mb-2"></i>
+              <h5 class="text-white">Admin Panel</h5>
+            </div>
+            <nav class="nav flex-column">
+              <a class="nav-link" href="/admin/dashboard">
+                <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+              </a>
+              <a class="nav-link active" href="/admin/doctors/manage">
+                <i class="fas fa-user-md me-2"></i>Manage Doctors
+              </a>
+              <a class="nav-link" href="/admin/appointments">
+                <i class="fas fa-calendar-check me-2"></i>Appointments
+              </a>
+              <a class="nav-link" href="/admin/users">
+                <i class="fas fa-users me-2"></i>Users
+              </a>
+              <hr class="text-white" />
+              <a class="nav-link" href="/logout">
+                <i class="fas fa-sign-out-alt me-2"></i>Logout
+              </a>
+            </nav>
+          </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9 col-lg-10">
+          <div class="main-content p-4">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <div>
+                <h2 class="mb-1">Edit Doctor</h2>
+                <p class="text-muted mb-0">Update doctor information</p>
+              </div>
+              <a href="/admin/doctors/manage" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Doctors
+              </a>
+            </div>
+
+            <!-- Flash Messages -->
+            <div
+              th:if="${message}"
+              class="alert alert-success alert-dismissible fade show"
+              role="alert"
+            >
+              <i class="fas fa-check-circle me-2"></i>
+              <span th:text="${message}"></span>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="alert"
+              ></button>
+            </div>
+
+            <div
+              th:if="${error}"
+              class="alert alert-danger alert-dismissible fade show"
+              role="alert"
+            >
+              <i class="fas fa-exclamation-circle me-2"></i>
+              <span th:text="${error}"></span>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="alert"
+              ></button>
+            </div>
+
+            <!-- Edit Doctor Form -->
+            <div class="card">
+              <div class="card-body p-4">
+                <form
+                  th:action="@{/admin/doctors/edit/{id}(id=${doctorId})}"
+                  th:object="${doctorDto}"
+                  method="post"
+                >
+                  <div class="row">
+                    <div class="col-md-6 mb-3">
+                      <label for="name" class="form-label">Full Name *</label>
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="name"
+                        th:field="*{name}"
+                        required
+                      />
+                      <div
+                        th:if="${#fields.hasErrors('name')}"
+                        class="text-danger small"
+                      >
+                        <span th:errors="*{name}"></span>
+                      </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                      <label for="email" class="form-label">Email *</label>
+                      <input
+                        type="email"
+                        class="form-control"
+                        id="email"
+                        th:field="*{email}"
+                        required
+                      />
+                      <div
+                        th:if="${#fields.hasErrors('email')}"
+                        class="text-danger small"
+                      >
+                        <span th:errors="*{email}"></span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <div class="col-md-6 mb-3">
+                      <label for="specialization" class="form-label"
+                        >Specialization *</label
+                      >
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="specialization"
+                        th:field="*{specialization}"
+                        required
+                      />
+                      <div
+                        th:if="${#fields.hasErrors('specialization')}"
+                        class="text-danger small"
+                      >
+                        <span th:errors="*{specialization}"></span>
+                      </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                      <label for="phoneNumber" class="form-label"
+                        >Phone Number *</label
+                      >
+                      <input
+                        type="tel"
+                        class="form-control"
+                        id="phoneNumber"
+                        th:field="*{phoneNumber}"
+                        required
+                      />
+                      <div
+                        th:if="${#fields.hasErrors('phoneNumber')}"
+                        class="text-danger small"
+                      >
+                        <span th:errors="*{phoneNumber}"></span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="mb-3">
+                    <label for="description" class="form-label"
+                      >Description</label
+                    >
+                    <textarea
+                      class="form-control"
+                      id="description"
+                      th:field="*{description}"
+                      rows="3"
+                    ></textarea>
+                    <div
+                      th:if="${#fields.hasErrors('description')}"
+                      class="text-danger small"
+                    >
+                      <span th:errors="*{description}"></span>
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <div class="col-md-4 mb-3">
+                      <label for="visitingStartTime" class="form-label"
+                        >Start Time *</label
+                      >
+                      <input
+                        type="time"
+                        class="form-control"
+                        id="visitingStartTime"
+                        th:field="*{visitingStartTime}"
+                        required
+                      />
+                      <div
+                        th:if="${#fields.hasErrors('visitingStartTime')}"
+                        class="text-danger small"
+                      >
+                        <span th:errors="*{visitingStartTime}"></span>
+                      </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                      <label for="visitingEndTime" class="form-label"
+                        >End Time *</label
+                      >
+                      <input
+                        type="time"
+                        class="form-control"
+                        id="visitingEndTime"
+                        th:field="*{visitingEndTime}"
+                        required
+                      />
+                      <div
+                        th:if="${#fields.hasErrors('visitingEndTime')}"
+                        class="text-danger small"
+                      >
+                        <span th:errors="*{visitingEndTime}"></span>
+                      </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                      <label for="consultationFee" class="form-label"
+                        >Consultation Fee *</label
+                      >
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="consultationFee"
+                        th:field="*{consultationFee}"
+                        step="0.01"
+                        min="0"
+                        required
+                      />
+                      <div
+                        th:if="${#fields.hasErrors('consultationFee')}"
+                        class="text-danger small"
+                      >
+                        <span th:errors="*{consultationFee}"></span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="mb-3">
+                    <div class="form-check">
+                      <input
+                        class="form-check-input"
+                        type="checkbox"
+                        id="available"
+                        th:field="*{available}"
+                      />
+                      <label class="form-check-label" for="available">
+                        Available for appointments
+                      </label>
+                    </div>
+                  </div>
+
+                  <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                      <i class="fas fa-save me-2"></i>Update Doctor
+                    </button>
+                    <a
+                      href="/admin/doctors/manage"
+                      class="btn btn-outline-secondary"
+                    >
+                      <i class="fas fa-times me-2"></i>Cancel
+                    </a>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>

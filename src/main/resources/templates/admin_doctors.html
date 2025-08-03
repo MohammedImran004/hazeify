@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Doctor Management - Hazeify</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+      }
+
+      .header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        text-align: center;
+      }
+
+      .header h1 {
+        font-size: 2.5em;
+        margin-bottom: 10px;
+      }
+
+      .header p {
+        font-size: 1.1em;
+        opacity: 0.9;
+      }
+
+      .actions {
+        padding: 30px;
+        background: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 20px;
+      }
+
+      .btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 12px 25px;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s ease;
+        text-decoration: none;
+        display: inline-block;
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+      }
+
+      .btn-danger {
+        background: #dc3545;
+      }
+
+      .btn-success {
+        background: #28a745;
+      }
+
+      .btn-warning {
+        background: #ffc107;
+        color: #333;
+      }
+
+      .content {
+        padding: 30px;
+      }
+
+      .table-container {
+        overflow-x: auto;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      th,
+      td {
+        padding: 15px;
+        text-align: left;
+        border-bottom: 1px solid #e9ecef;
+      }
+
+      th {
+        background: #667eea;
+        color: white;
+        font-weight: 600;
+      }
+
+      tr:hover {
+        background: #f8f9fa;
+      }
+
+      .status {
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 0.9em;
+        font-weight: 600;
+      }
+
+      .status-available {
+        background: #d4edda;
+        color: #155724;
+      }
+
+      .status-unavailable {
+        background: #f8d7da;
+        color: #721c24;
+      }
+
+      .loading {
+        text-align: center;
+        padding: 50px;
+        color: #666;
+      }
+
+      .spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #667eea;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 20px;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+      }
+
+      .modal-content {
+        background-color: white;
+        margin: 5% auto;
+        padding: 30px;
+        border-radius: 15px;
+        width: 90%;
+        max-width: 600px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+      }
+
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+
+      .modal-title {
+        font-size: 1.5em;
+        font-weight: bold;
+        color: #333;
+      }
+
+      .close {
+        color: #aaa;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+
+      .close:hover {
+        color: #000;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 8px;
+        color: #333;
+        font-weight: 600;
+      }
+
+      input,
+      select,
+      textarea {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid #e1e5e9;
+        border-radius: 8px;
+        font-size: 16px;
+        transition: border-color 0.3s ease;
+      }
+
+      input:focus,
+      select:focus,
+      textarea:focus {
+        outline: none;
+        border-color: #667eea;
+      }
+
+      .alert {
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        display: none;
+      }
+
+      .alert-success {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+
+      .alert-error {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+      }
+
+      .action-buttons {
+        display: flex;
+        gap: 10px;
+      }
+
+      .btn-sm {
+        padding: 8px 15px;
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>Doctor Management</h1>
+        <p>Manage doctors, their specializations, and shift timings</p>
+      </div>
+
+      <div class="actions">
+        <button class="btn" onclick="openAddDoctorModal()">
+          Add New Doctor
+        </button>
+        <div><span id="totalDoctors">0</span> doctors registered</div>
+      </div>
+
+      <div class="content">
+        <div id="alert" class="alert"></div>
+
+        <div id="loading" class="loading">
+          <div class="spinner"></div>
+          <p>Loading doctors...</p>
+        </div>
+
+        <div id="doctorsTable" class="table-container" style="display: none">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Specialization</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Shift Start</th>
+                <th>Shift End</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="doctorsTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add/Edit Doctor Modal -->
+    <div id="doctorModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <span class="modal-title" id="modalTitle">Add New Doctor</span>
+          <span class="close" onclick="closeModal()">&times;</span>
+        </div>
+
+        <form id="doctorForm">
+          <input type="hidden" id="doctorId" name="doctorId" />
+
+          <div class="form-group">
+            <label for="name">Full Name *</label>
+            <input type="text" id="name" name="name" required />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="specialization">Specialization *</label>
+              <input
+                type="text"
+                id="specialization"
+                name="specialization"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="email">Email *</label>
+              <input type="email" id="email" name="email" required />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="phoneNumber">Phone Number *</label>
+              <input type="tel" id="phoneNumber" name="phoneNumber" required />
+            </div>
+            <div class="form-group">
+              <label for="consultationFee">Consultation Fee</label>
+              <input
+                type="number"
+                id="consultationFee"
+                name="consultationFee"
+                step="0.01"
+              />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="visitingStartTime">Shift Start Time *</label>
+              <input
+                type="time"
+                id="visitingStartTime"
+                name="visitingStartTime"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="visitingEndTime">Shift End Time *</label>
+              <input
+                type="time"
+                id="visitingEndTime"
+                name="visitingEndTime"
+                required
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description" name="description" rows="4"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>
+              <input type="checkbox" id="available" name="available" checked />
+              Available for appointments
+            </label>
+          </div>
+
+          <div class="action-buttons">
+            <button type="submit" class="btn" id="submitBtn">
+              Save Doctor
+            </button>
+            <button
+              type="button"
+              class="btn btn-warning"
+              onclick="closeModal()"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      let doctors = [];
+      let editingDoctorId = null;
+
+      // Load doctors on page load
+      document.addEventListener("DOMContentLoaded", function () {
+        loadDoctors();
+      });
+
+      async function loadDoctors() {
+        const loading = document.getElementById("loading");
+        const tableContainer = document.getElementById("doctorsTable");
+
+        loading.style.display = "block";
+        tableContainer.style.display = "none";
+
+        try {
+          const response = await fetch("/admin/api/doctors");
+
+          if (response.ok) {
+            doctors = await response.json();
+            displayDoctors();
+            updateStats();
+          } else {
+            showAlert("Failed to load doctors. Please try again.", "error");
+          }
+        } catch (error) {
+          showAlert(
+            "Error loading doctors. Please check your connection.",
+            "error"
+          );
+        } finally {
+          loading.style.display = "none";
+        }
+      }
+
+      function displayDoctors() {
+        const tableBody = document.getElementById("doctorsTableBody");
+        const tableContainer = document.getElementById("doctorsTable");
+
+        tableBody.innerHTML = "";
+
+        doctors.forEach((doctor) => {
+          const row = document.createElement("tr");
+
+          row.innerHTML = `
+                    <td>${doctor.name}</td>
+                    <td>${doctor.specialization}</td>
+                    <td>${doctor.email}</td>
+                    <td>${doctor.phoneNumber}</td>
+                    <td>${doctor.visitingStartTime}</td>
+                    <td>${doctor.visitingEndTime}</td>
+                    <td><span class="status status-${
+                      doctor.available ? "available" : "unavailable"
+                    }">${
+            doctor.available ? "Available" : "Unavailable"
+          }</span></td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn btn-sm btn-warning" onclick="editDoctor(${
+                              doctor.id
+                            })">Edit</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteDoctor(${
+                              doctor.id
+                            })">Delete</button>
+                        </div>
+                    </td>
+                `;
+
+          tableBody.appendChild(row);
+        });
+
+        tableContainer.style.display = "block";
+      }
+
+      function updateStats() {
+        document.getElementById("totalDoctors").textContent = doctors.length;
+      }
+
+      function openAddDoctorModal() {
+        editingDoctorId = null;
+        document.getElementById("modalTitle").textContent = "Add New Doctor";
+        document.getElementById("doctorForm").reset();
+        document.getElementById("doctorId").value = "";
+        document.getElementById("doctorModal").style.display = "block";
+      }
+
+      function editDoctor(doctorId) {
+        const doctor = doctors.find((d) => d.id === doctorId);
+        if (!doctor) return;
+
+        editingDoctorId = doctorId;
+        document.getElementById("modalTitle").textContent = "Edit Doctor";
+
+        // Populate form
+        document.getElementById("doctorId").value = doctor.id;
+        document.getElementById("name").value = doctor.name;
+        document.getElementById("specialization").value = doctor.specialization;
+        document.getElementById("email").value = doctor.email;
+        document.getElementById("phoneNumber").value = doctor.phoneNumber;
+        document.getElementById("consultationFee").value =
+          doctor.consultationFee || "";
+        document.getElementById("visitingStartTime").value =
+          doctor.visitingStartTime;
+        document.getElementById("visitingEndTime").value =
+          doctor.visitingEndTime;
+        document.getElementById("description").value = doctor.description || "";
+        document.getElementById("available").checked = doctor.available;
+
+        document.getElementById("doctorModal").style.display = "block";
+      }
+
+      function closeModal() {
+        document.getElementById("doctorModal").style.display = "none";
+      }
+
+      async function deleteDoctor(doctorId) {
+        if (!confirm("Are you sure you want to delete this doctor?")) {
+          return;
+        }
+
+        try {
+          const response = await fetch(`/admin/api/doctors/${doctorId}`, {
+            method: "DELETE",
+          });
+
+          if (response.ok) {
+            showAlert("Doctor deleted successfully!", "success");
+            loadDoctors();
+          } else {
+            showAlert("Failed to delete doctor. Please try again.", "error");
+          }
+        } catch (error) {
+          showAlert(
+            "Error deleting doctor. Please check your connection.",
+            "error"
+          );
+        }
+      }
+
+      document
+        .getElementById("doctorForm")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
+
+          const submitBtn = document.getElementById("submitBtn");
+          const originalText = submitBtn.textContent;
+
+          submitBtn.disabled = true;
+          submitBtn.textContent = "Saving...";
+
+          const formData = new FormData(e.target);
+          const doctorData = {
+            name: formData.get("name"),
+            specialization: formData.get("specialization"),
+            email: formData.get("email"),
+            phoneNumber: formData.get("phoneNumber"),
+            consultationFee: formData.get("consultationFee")
+              ? parseFloat(formData.get("consultationFee"))
+              : null,
+            visitingStartTime: formData.get("visitingStartTime"),
+            visitingEndTime: formData.get("visitingEndTime"),
+            description: formData.get("description") || "",
+            available: formData.get("available") === "on",
+          };
+
+          try {
+            const url = editingDoctorId
+              ? `/admin/api/doctors/${editingDoctorId}`
+              : "/admin/api/doctors";
+            const method = editingDoctorId ? "PUT" : "POST";
+
+            const response = await fetch(url, {
+              method: method,
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(doctorData),
+            });
+
+            if (response.ok) {
+              const message = editingDoctorId
+                ? "Doctor updated successfully!"
+                : "Doctor added successfully!";
+              showAlert(message, "success");
+              closeModal();
+              loadDoctors();
+            } else {
+              const errorData = await response.json();
+              showAlert(
+                errorData.message || "Failed to save doctor. Please try again.",
+                "error"
+              );
+            }
+          } catch (error) {
+            showAlert(
+              "Error saving doctor. Please check your connection.",
+              "error"
+            );
+          } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalText;
+          }
+        });
+
+      function showAlert(message, type) {
+        const alert = document.getElementById("alert");
+        alert.textContent = message;
+        alert.className = `alert alert-${type}`;
+        alert.style.display = "block";
+
+        setTimeout(() => {
+          alert.style.display = "none";
+        }, 5000);
+      }
+
+      // Close modal when clicking outside
+      window.onclick = function (event) {
+        const modal = document.getElementById("doctorModal");
+        if (event.target === modal) {
+          closeModal();
+        }
+      };
+    </script>
+  </body>
+</html>

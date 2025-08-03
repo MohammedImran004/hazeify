@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Book Appointment - Hazeify</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+      }
+
+      .header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        text-align: center;
+      }
+
+      .header h1 {
+        font-size: 2.5em;
+        margin-bottom: 10px;
+      }
+
+      .header p {
+        font-size: 1.1em;
+        opacity: 0.9;
+      }
+
+      .content {
+        padding: 30px;
+      }
+
+      .doctors-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin-top: 30px;
+      }
+
+      .doctor-card {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 25px;
+        border-left: 4px solid #667eea;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      .doctor-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      }
+
+      .doctor-name {
+        font-size: 1.5em;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 10px;
+      }
+
+      .doctor-specialization {
+        color: #667eea;
+        font-weight: 600;
+        margin-bottom: 15px;
+      }
+
+      .doctor-info {
+        color: #666;
+        margin-bottom: 15px;
+        line-height: 1.5;
+      }
+
+      .doctor-schedule {
+        background: #e9ecef;
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        font-size: 0.9em;
+      }
+
+      .btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 12px 25px;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s ease;
+        text-decoration: none;
+        display: inline-block;
+        width: 100%;
+        text-align: center;
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+      }
+
+      .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .alert {
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        display: none;
+      }
+
+      .alert-success {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+
+      .alert-error {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+      }
+
+      .loading {
+        text-align: center;
+        padding: 50px;
+        color: #666;
+      }
+
+      .spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #667eea;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 20px;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .no-doctors {
+        text-align: center;
+        padding: 50px;
+        color: #666;
+      }
+
+      .nav-bar {
+        background: #f8f9fa;
+        padding: 15px 30px;
+        border-bottom: 1px solid #e9ecef;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .nav-links {
+        display: flex;
+        gap: 20px;
+      }
+
+      .nav-link {
+        color: #667eea;
+        text-decoration: none;
+        font-weight: 600;
+        transition: color 0.3s ease;
+      }
+
+      .nav-link:hover {
+        color: #764ba2;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="nav-bar">
+        <div>
+          <a href="/patient/dashboard" class="nav-link">← Back to Dashboard</a>
+        </div>
+        <div class="nav-links">
+          <a href="/patient/appointments" class="nav-link">My Appointments</a>
+          <a href="/patient/profile" class="nav-link">Profile</a>
+          <a href="/logout" class="nav-link">Logout</a>
+        </div>
+      </div>
+
+      <div class="header">
+        <h1>Book Your Appointment</h1>
+        <p>Select a doctor to schedule your consultation</p>
+      </div>
+
+      <div class="content">
+        <div id="alert" class="alert"></div>
+
+        <div id="loading" class="loading">
+          <div class="spinner"></div>
+          <p>Loading available doctors...</p>
+        </div>
+
+        <div id="noDoctors" class="no-doctors" style="display: none">
+          <h3>No doctors available</h3>
+          <p>
+            There are currently no doctors available for appointments. Please
+            check back later.
+          </p>
+        </div>
+
+        <div id="doctorsGrid" class="doctors-grid" style="display: none">
+          <!-- Doctors will be loaded here -->
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Load doctors on page load
+      document.addEventListener("DOMContentLoaded", function () {
+        loadDoctors();
+      });
+
+      async function loadDoctors() {
+        const loading = document.getElementById("loading");
+        const doctorsGrid = document.getElementById("doctorsGrid");
+        const noDoctors = document.getElementById("noDoctors");
+
+        loading.style.display = "block";
+        doctorsGrid.style.display = "none";
+        noDoctors.style.display = "none";
+
+        try {
+          const response = await fetch("/api/admin/doctors");
+
+          if (response.ok) {
+            const doctors = await response.json();
+            const availableDoctors = doctors.filter(
+              (doctor) => doctor.available
+            );
+
+            if (availableDoctors.length === 0) {
+              noDoctors.style.display = "block";
+            } else {
+              displayDoctors(availableDoctors);
+              doctorsGrid.style.display = "grid";
+            }
+          } else {
+            showAlert("Failed to load doctors. Please try again.", "error");
+          }
+        } catch (error) {
+          showAlert(
+            "Error loading doctors. Please check your connection.",
+            "error"
+          );
+        } finally {
+          loading.style.display = "none";
+        }
+      }
+
+      function displayDoctors(doctors) {
+        const doctorsGrid = document.getElementById("doctorsGrid");
+        doctorsGrid.innerHTML = "";
+
+        doctors.forEach((doctor) => {
+          const doctorCard = document.createElement("div");
+          doctorCard.className = "doctor-card";
+
+          const schedule = `${doctor.visitingStartTime} - ${doctor.visitingEndTime}`;
+          const fee = doctor.consultationFee
+            ? `$${doctor.consultationFee}`
+            : "Contact for pricing";
+
+          doctorCard.innerHTML = `
+                    <div class="doctor-name">${doctor.name}</div>
+                    <div class="doctor-specialization">${
+                      doctor.specialization
+                    }</div>
+                    <div class="doctor-info">
+                        <p><strong>Email:</strong> ${doctor.email}</p>
+                        <p><strong>Phone:</strong> ${doctor.phoneNumber}</p>
+                        <p><strong>Fee:</strong> ${fee}</p>
+                        ${
+                          doctor.description
+                            ? `<p><strong>About:</strong> ${doctor.description}</p>`
+                            : ""
+                        }
+                    </div>
+                    <div class="doctor-schedule">
+                        <strong>Schedule:</strong> ${schedule}
+                    </div>
+                    <a href="/patient/book-appointment/${
+                      doctor.id
+                    }" class="btn">Book Appointment</a>
+                `;
+
+          doctorsGrid.appendChild(doctorCard);
+        });
+      }
+
+      function showAlert(message, type) {
+        const alert = document.getElementById("alert");
+        alert.textContent = message;
+        alert.className = `alert alert-${type}`;
+        alert.style.display = "block";
+
+        setTimeout(() => {
+          alert.style.display = "none";
+        }, 5000);
+      }
+    </script>
+  </body>
+</html>
