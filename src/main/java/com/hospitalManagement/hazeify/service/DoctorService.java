@@ -59,11 +59,27 @@ public class DoctorService {
     }
 
     public List<Doctor> getAllDoctors() {
-        return doctorRepository.findAll();
+        try {
+            List<Doctor> doctors = doctorRepository.findAll();
+            System.out.println("DoctorService: Found " + doctors.size() + " total doctors");
+            return doctors;
+        } catch (Exception e) {
+            System.err.println("DoctorService Error: " + e.getMessage());
+            e.printStackTrace();
+            return new java.util.ArrayList<>();
+        }
     }
 
     public List<Doctor> getAvailableDoctors() {
-        return doctorRepository.findAllAvailableDoctors();
+        try {
+            List<Doctor> doctors = doctorRepository.findAllAvailableDoctors();
+            System.out.println("DoctorService: Found " + doctors.size() + " available doctors");
+            return doctors;
+        } catch (Exception e) {
+            System.err.println("DoctorService Error: " + e.getMessage());
+            e.printStackTrace();
+            return new java.util.ArrayList<>();
+        }
     }
 
     public Doctor getDoctorById(Long id) {

@@ -246,20 +246,21 @@
                         </td>
                         <td>
                           <div class="btn-group btn-group-sm">
-                            <button
+                            <a
+                              th:href="@{/admin/users/edit/{id}(id=${user.id})}"
                               class="btn btn-outline-primary"
-                              th:onclick="'editUser(' + ${user.id} + ')'"
                               title="Edit User"
                             >
                               <i class="fas fa-edit"></i>
-                            </button>
-                            <button
+                            </a>
+                            <a
+                              th:href="@{/admin/users/delete/{id}(id=${user.id})}"
                               class="btn btn-outline-danger"
-                              th:onclick="'deleteUser(' + ${user.id} + ')'"
                               title="Delete User"
+                              onclick="return confirm('Are you sure you want to delete this user? This action cannot be undone.')"
                             >
                               <i class="fas fa-trash"></i>
-                            </button>
+                            </a>
                           </div>
                         </td>
                       </tr>
@@ -381,23 +382,5 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-      function editUser(id) {
-        // This would typically load user details via AJAX
-        alert("Edit user with ID: " + id);
-      }
-
-      function deleteUser(id) {
-        if (
-          confirm(
-            "Are you sure you want to delete this user? This action cannot be undone."
-          )
-        ) {
-          // This would typically make an AJAX call to delete the user
-          alert("User deleted: " + id);
-          location.reload();
-        }
-      }
-    </script>
   </body>
 </html>

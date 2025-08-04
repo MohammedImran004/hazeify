@@ -66,10 +66,20 @@ public class PatientController {
 
     @GetMapping("/book-appointment")
     public String bookAppointmentGeneral(Model model) {
-        List<Doctor> doctors = doctorService.getAvailableDoctors();
-        model.addAttribute("doctors", doctors);
-        model.addAttribute("appointmentDto", new AppointmentDto());
-        return "patient/book-appointment-general";
+        try {
+            List<Doctor> doctors = doctorService.getAvailableDoctors();
+            System.out.println("Patient Book-Appointment: Found " + doctors.size() + " available doctors");
+            model.addAttribute("doctors", doctors);
+            model.addAttribute("appointmentDto", new AppointmentDto());
+            return "patient/book-appointment-general";
+        } catch (Exception e) {
+            System.err.println("Patient Book-Appointment Error: " + e.getMessage());
+            e.printStackTrace();
+            model.addAttribute("error", "Failed to load doctors: " + e.getMessage());
+            model.addAttribute("doctors", new java.util.ArrayList<>());
+            model.addAttribute("appointmentDto", new AppointmentDto());
+            return "patient/book-appointment-general";
+        }
     }
 
     @GetMapping("/book-appointment/{doctorId}")

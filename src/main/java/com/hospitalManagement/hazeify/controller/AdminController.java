@@ -1,8 +1,11 @@
 package com.hospitalManagement.hazeify.controller;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.hospitalManagement.hazeify.dto.DoctorDto;
+import com.hospitalManagement.hazeify.dto.DoctorResponseDto;
 import com.hospitalManagement.hazeify.dto.UserDto;
 import com.hospitalManagement.hazeify.entity.Appointment;
 import com.hospitalManagement.hazeify.entity.Doctor;
@@ -158,8 +162,7 @@ public class AdminController {
     @GetMapping("/doctors/manage")
     public String manageDoctors(Model model) {
         try {
-            List<Doctor> doctors = doctorService.getAllDoctors();
-            model.addAttribute("doctors", doctors);
+            // Don't load doctors here since the template uses JavaScript to fetch from API
             model.addAttribute("doctorDto", new DoctorDto());
             return "admin/doctors";
         } catch (Exception e) {
@@ -244,10 +247,30 @@ public class AdminController {
     }
 
     @GetMapping("/appointments")
-    public String viewAppointments(Model model) {
+    public String viewAppointments(Model model,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestParam(required = false) String status) {
         try {
             List<Appointment> appointments = appointmentService.getAllAppointments();
+
+            // Filter by date if provided
+            if (date != null) {
+                appointments = appointments.stream()
+                        .filter(apt -> apt.getDate().equals(date))
+                        .collect(Collectors.toList());
+            }
+
+            // Filter by status if provided
+            if (status != null && !status.isEmpty()) {
+                Appointment.AppointmentStatus statusEnum = Appointment.AppointmentStatus.valueOf(status.toUpperCase());
+                appointments = appointments.stream()
+                        .filter(apt -> apt.getStatus() == statusEnum)
+                        .collect(Collectors.toList());
+            }
+
             model.addAttribute("appointments", appointments);
+            model.addAttribute("selectedDate", date);
+            model.addAttribute("selectedStatus", status);
             return "admin/appointments";
         } catch (Exception e) {
             model.addAttribute("error", "Error loading appointments: " + e.getMessage());
@@ -325,11 +348,29 @@ public class AdminController {
 
     // REST API endpoints
     @GetMapping("/api/doctors")
-    public ResponseEntity<List<Doctor>> getAllDoctorsApi() {
+    public ResponseEntity<List<DoctorResponseDto>> getAllDoctorsApi() {
         try {
             List<Doctor> doctors = doctorService.getAllDoctors();
-            return ResponseEntity.ok(doctors);
+            System.out.println("API: Found " + doctors.size() + " doctors");
+
+            List<DoctorResponseDto> doctorDtos = doctors.stream()
+                    .map(doctor -> new DoctorResponseDto(
+                            doctor.getId(),
+                            doctor.getName(),
+                            doctor.getSpecialization(),
+                            doctor.getEmail(),
+                            doctor.getPhoneNumber(),
+                            doctor.getDescription(),
+                            doctor.getVisitingStartTime(),
+                            doctor.getVisitingEndTime(),
+                            doctor.getConsultationFee(),
+                            doctor.isAvailable()))
+                    .collect(Collectors.toList());
+
+            return ResponseEntity.ok(doctorDtos);
         } catch (Exception e) {
+            System.err.println("API Error: " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.badRequest().build();
         }
     }
@@ -425,10 +466,25 @@ public class AdminController {
     // Public endpoint for getting available doctors (no admin authentication
     // required)
     @GetMapping("/api/public/doctors")
-    public ResponseEntity<List<Doctor>> getAvailableDoctorsPublic() {
+    public ResponseEntity<List<DoctorResponseDto>> getAvailableDoctorsPublic() {
         try {
             List<Doctor> doctors = doctorService.getAvailableDoctors();
-            return ResponseEntity.ok(doctors);
+
+            List<DoctorResponseDto> doctorDtos = doctors.stream()
+                    .map(doctor -> new DoctorResponseDto(
+                            doctor.getId(),
+                            doctor.getName(),
+                            doctor.getSpecialization(),
+                            doctor.getEmail(),
+                            doctor.getPhoneNumber(),
+                            doctor.getDescription(),
+                            doctor.getVisitingStartTime(),
+                            doctor.getVisitingEndTime(),
+                            doctor.getConsultationFee(),
+                            doctor.isAvailable()))
+                    .collect(Collectors.toList());
+
+            return ResponseEntity.ok(doctorDtos);
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }

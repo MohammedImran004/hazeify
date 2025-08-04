@@ -139,7 +139,23 @@
 
       .action-buttons {
         display: flex;
-        gap: 8px;
+        gap: 12px;
+        margin-top: 20px;
+        justify-content: flex-end;
+      }
+
+      .action-buttons .btn {
+        min-width: 100px;
+        padding: 12px 20px;
+        font-weight: 600;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .action-buttons .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
       }
 
       .btn-sm {
@@ -177,22 +193,33 @@
       .modal {
         display: none;
         position: fixed;
-        z-index: 1000;
+        z-index: 9999;
         left: 0;
         top: 0;
         width: 100%;
         height: 100%;
-        background-color: rgba(0, 0, 0, 0.5);
+        background-color: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(5px);
       }
 
       .modal-content {
         background-color: white;
         margin: 5% auto;
-        padding: 30px;
+        padding: 40px;
         border-radius: 15px;
         width: 90%;
-        max-width: 600px;
+        max-width: 700px;
         position: relative;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        border: 1px solid #ddd;
+        max-height: 90vh;
+        overflow-y: auto;
+      }
+
+      .modal-content form {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
       }
 
       .modal-header {
@@ -223,30 +250,36 @@
 
       .form-group {
         margin-bottom: 20px;
+        display: flex;
+        flex-direction: column;
       }
 
       .form-row {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 15px;
+        gap: 20px;
+        margin-bottom: 20px;
       }
 
       label {
         display: block;
         margin-bottom: 8px;
-        font-weight: 500;
+        font-weight: 600;
         color: #495057;
+        font-size: 14px;
       }
 
       input,
       textarea,
       select {
         width: 100%;
-        padding: 12px;
-        border: 1px solid #ced4da;
-        border-radius: 6px;
+        padding: 12px 15px;
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
         font-size: 16px;
-        transition: border-color 0.2s ease;
+        transition: all 0.3s ease;
+        background-color: #fff;
+        box-sizing: border-box;
       }
 
       input:focus,
@@ -255,13 +288,53 @@
         outline: none;
         border-color: #667eea;
         box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        transform: translateY(-1px);
+      }
+
+      input[type="checkbox"] {
+        width: auto;
+        margin-right: 8px;
+      }
+
+      .checkbox-label {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center;
+        cursor: pointer;
+        font-weight: 500;
+      }
+
+      .checkbox-label span {
+        margin-left: 8px;
+      }
+
+      textarea {
+        resize: vertical;
+        min-height: 100px;
       }
 
       .action-buttons {
         display: flex;
-        gap: 10px;
+        gap: 15px;
         justify-content: flex-end;
-        margin-top: 20px;
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid #e9ecef;
+      }
+
+      .action-buttons .btn {
+        min-width: 120px;
+        padding: 12px 24px;
+        font-weight: 600;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-align: center;
+      }
+
+      .action-buttons .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
       }
 
       .alert {
@@ -449,9 +522,9 @@
           </div>
 
           <div class="form-group">
-            <label>
+            <label class="checkbox-label">
               <input type="checkbox" id="available" name="available" checked />
-              Available for appointments
+              <span>Available for appointments</span>
             </label>
           </div>
 
@@ -488,18 +561,35 @@
         tableContainer.style.display = "none";
 
         try {
-          const response = await fetch("/admin/api/doctors");
+          const response = await fetch("/admin/api/doctors", {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "same-origin",
+          });
 
           if (response.ok) {
             doctors = await response.json();
             displayDoctors();
             updateStats();
           } else {
-            showAlert("Failed to load doctors. Please try again.", "error");
+            console.error(
+              "Failed to load doctors:",
+              response.status,
+              response.statusText
+            );
+            showAlert(
+              "Failed to load doctors. Please try again. Status: " +
+                response.status,
+              "error"
+            );
           }
         } catch (error) {
+          console.error("Error loading doctors:", error);
           showAlert(
-            "Error loading doctors. Please check your connection.",
+            "Error loading doctors. Please check your connection. Error: " +
+              error.message,
             "error"
           );
         } finally {
@@ -551,11 +641,15 @@
       }
 
       function openAddDoctorModal() {
+        console.log("Opening add doctor modal");
         editingDoctorId = null;
         document.getElementById("modalTitle").textContent = "Add New Doctor";
         document.getElementById("doctorForm").reset();
         document.getElementById("doctorId").value = "";
-        document.getElementById("doctorModal").style.display = "block";
+        const modal = document.getElementById("doctorModal");
+        modal.style.display = "block";
+        console.log("Modal display set to:", modal.style.display);
+        console.log("Modal z-index:", modal.style.zIndex);
       }
 
       function editDoctor(doctorId) {
@@ -588,13 +682,18 @@
       }
 
       async function deleteDoctor(doctorId) {
-        if (!confirm("Are you sure you want to delete this doctor?")) {
+        // Show custom confirmation dialog
+        const confirmed = await showConfirmDialog(
+          "Are you sure you want to delete this doctor? This action cannot be undone."
+        );
+        if (!confirmed) {
           return;
         }
 
         try {
           const response = await fetch(`/admin/api/doctors/${doctorId}`, {
             method: "DELETE",
+            credentials: "same-origin",
           });
 
           if (response.ok) {
@@ -604,11 +703,41 @@
             showAlert("Failed to delete doctor. Please try again.", "error");
           }
         } catch (error) {
+          console.error("Error deleting doctor:", error);
           showAlert(
-            "Error deleting doctor. Please check your connection.",
+            "Error deleting doctor. Please check your connection. Error: " +
+              error.message,
             "error"
           );
         }
+      }
+
+      function showConfirmDialog(message) {
+        return new Promise((resolve) => {
+          const dialog = document.createElement("div");
+          dialog.className = "modal";
+          dialog.style.display = "block";
+          dialog.innerHTML = `
+            <div class="modal-content" style="max-width: 400px;">
+              <div class="modal-header">
+                <span class="modal-title">Confirm Action</span>
+                <span class="close" onclick="this.parentElement.parentElement.parentElement.remove(); resolve(false);">&times;</span>
+              </div>
+              <div style="padding: 20px;">
+                <p>${message}</p>
+                <div class="action-buttons">
+                  <button type="button" class="btn btn-danger" onclick="this.parentElement.parentElement.parentElement.remove(); resolve(true);">
+                    Yes, Delete
+                  </button>
+                  <button type="button" class="btn btn-warning" onclick="this.parentElement.parentElement.parentElement.remove(); resolve(false);">
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          `;
+          document.body.appendChild(dialog);
+        });
       }
 
       document

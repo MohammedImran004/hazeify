@@ -52,7 +52,9 @@ public class SecurityConfig {
                                                 .permitAll())
                                 .logout(logout -> logout
                                                 .logoutUrl("/logout")
-                                                .logoutSuccessUrl("/")
+                                                .logoutSuccessUrl("/login")
+                                                .invalidateHttpSession(true)
+                                                .deleteCookies("jwt_token")
                                                 .permitAll());
 
                 return http.build();

@@ -198,32 +198,62 @@
               </div>
             </div>
 
-            <!-- Filter Buttons -->
+            <!-- Filter Section -->
             <div class="mb-4">
-              <div class="btn-group" role="group">
-                <a href="/admin/appointments" class="btn btn-outline-primary"
-                  >All</a
-                >
-                <a
-                  href="/admin/appointments?status=PENDING"
-                  class="btn btn-outline-warning"
-                  >Pending</a
-                >
-                <a
-                  href="/admin/appointments?status=CONFIRMED"
-                  class="btn btn-outline-success"
-                  >Confirmed</a
-                >
-                <a
-                  href="/admin/appointments?status=COMPLETED"
-                  class="btn btn-outline-info"
-                  >Completed</a
-                >
-                <a
-                  href="/admin/appointments?status=CANCELLED"
-                  class="btn btn-outline-danger"
-                  >Cancelled</a
-                >
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="btn-group" role="group">
+                    <a
+                      href="/admin/appointments"
+                      class="btn btn-outline-primary"
+                      >All</a
+                    >
+                    <a
+                      href="/admin/appointments?status=PENDING"
+                      class="btn btn-outline-warning"
+                      >Pending</a
+                    >
+                    <a
+                      href="/admin/appointments?status=CONFIRMED"
+                      class="btn btn-outline-success"
+                      >Confirmed</a
+                    >
+                    <a
+                      href="/admin/appointments?status=COMPLETED"
+                      class="btn btn-outline-info"
+                      >Completed</a
+                    >
+                    <a
+                      href="/admin/appointments?status=CANCELLED"
+                      class="btn btn-outline-danger"
+                      >Cancelled</a
+                    >
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <form
+                    method="get"
+                    action="/admin/appointments"
+                    class="d-flex gap-2"
+                  >
+                    <input
+                      type="date"
+                      name="date"
+                      class="form-control"
+                      th:value="${selectedDate}"
+                      placeholder="Filter by date"
+                    />
+                    <button type="submit" class="btn btn-outline-secondary">
+                      <i class="fas fa-filter"></i> Filter
+                    </button>
+                    <a
+                      href="/admin/appointments"
+                      class="btn btn-outline-danger"
+                    >
+                      <i class="fas fa-times"></i> Clear
+                    </a>
+                  </form>
+                </div>
               </div>
             </div>
 
